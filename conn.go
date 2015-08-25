@@ -3,7 +3,6 @@ package mysqlclient
 import (
 	"errors"
 	"net"
-	"strings"
 
 	"github.com/pubnative/mysqlproto-go"
 )
@@ -12,15 +11,13 @@ type Conn struct {
 	conn net.Conn
 }
 
-func NewConn(dataSource string) (Conn, error) {
-	usr, pass, proto, addr, dbname := parseDataSource(dataSource)
-
-	conn, err := net.Dial(proto, addr)
+func NewConn(username, password, protocol, address, database string) (Conn, error) {
+	conn, err := net.Dial(protocol, address)
 	if err != nil {
 		return Conn{}, err
 	}
 
-	if err = handshake(conn, usr, pass, dbname); err != nil {
+	if err = handshake(conn, username, password, database); err != nil {
 		return Conn{}, err
 	}
 
@@ -29,28 +26,6 @@ func NewConn(dataSource string) (Conn, error) {
 
 func (c Conn) Close() error {
 	return c.conn.Close()
-}
-
-func parseDataSource(dataSource string) (username, password, protocol, address, database string) {
-	params := strings.Split(dataSource, "@")
-
-	userData := strings.Split(params[0], ":")
-	serverData := strings.Split(params[1], "/")
-
-	username = userData[0]
-	if len(userData) > 1 {
-		password = userData[1]
-	}
-
-	if len(serverData) > 1 {
-		database = serverData[1]
-	}
-
-	protoHost := strings.Split(serverData[0], "(")
-	protocol = protoHost[0]
-	address = protoHost[1][:len(protoHost[1])-1]
-
-	return
 }
 
 func handshake(conn net.Conn, username, password, database string) error {
