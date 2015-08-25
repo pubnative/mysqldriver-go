@@ -6,10 +6,10 @@ import (
 
 type Rows struct {
 	resultSet mysqlproto.ResultSet
-	packet []byte
-	offset uint64
-	eof bool
-	err error
+	packet    []byte
+	offset    uint64
+	eof       bool
+	err       error
 }
 
 func (r *Rows) Next() bool {

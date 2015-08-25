@@ -1,9 +1,9 @@
 package mysqlclient
 
 import (
+	"errors"
 	"net"
 	"strings"
-	"errors"
 
 	"github.com/pubnative/mysqlproto-go"
 )
@@ -85,7 +85,3 @@ func handshake(conn net.Conn, username, password, database string) error {
 
 	return nil
 }
-
-
-
-
