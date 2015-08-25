@@ -27,6 +27,10 @@ func NewConn(dataSource string) (Conn, error) {
 	return Conn{conn}, nil
 }
 
+func (c Conn) Close() error {
+	return c.conn.Close()
+}
+
 func parseDataSource(dataSource string) (username, password, protocol, address, database string) {
 	params := strings.Split(dataSource, "@")
 
