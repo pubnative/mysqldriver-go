@@ -1,8 +1,11 @@
 package mysqlclient
 
 import (
+	"errors"
 	"strings"
 )
+
+var ErrClosedDB = errors.New("get connection from closed DB")
 
 type DB struct {
 	conns    chan Conn
@@ -28,7 +31,10 @@ func NewDB(dataSource string, pool int) *DB {
 
 func (db *DB) GetConn() (Conn, error) {
 	select {
-	case conn := <-db.conns:
+	case conn, more := <-db.conns:
+		if !more {
+			return Conn{}, ErrClosedDB
+		}
 		return conn, nil
 	default:
 		return db.dial()
