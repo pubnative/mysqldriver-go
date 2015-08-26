@@ -1,6 +1,8 @@
 package mysqlclient
 
 import (
+	"strconv"
+
 	"github.com/pubnative/mysqlproto-go"
 )
 
@@ -14,6 +16,10 @@ type Rows struct {
 
 func (r *Rows) Next() bool {
 	if r.eof {
+		return false
+	}
+
+	if r.err != nil {
 		return false
 	}
 
@@ -38,6 +44,31 @@ func (r *Rows) String() string {
 	value, offset := mysqlproto.ParseString(r.packet, r.offset)
 	r.offset = offset
 	return value
+}
+
+func (r *Rows) Int() int {
+	num, err := strconv.Atoi(r.String())
+	if err != nil {
+		r.err = err
+	}
+
+	return num
+}
+
+func (r *Rows) Int32() int32 {
+	num, err := strconv.ParseInt(r.String(), 10, 32)
+	if err != nil {
+		r.err = err
+	}
+	return int32(num)
+}
+
+func (r *Rows) Float64() float64 {
+	num, err := strconv.ParseFloat(r.String(), 64)
+	if err != nil {
+		r.err = err
+	}
+	return num
 }
 
 func (r *Rows) LastError() error {
