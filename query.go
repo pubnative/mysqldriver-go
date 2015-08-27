@@ -55,12 +55,44 @@ func (r *Rows) Int() int {
 	return num
 }
 
+func (r *Rows) Int8() int8 {
+	num, err := strconv.ParseInt(r.String(), 10, 8)
+	if err != nil {
+		r.err = err
+	}
+	return int8(num)
+}
+
+func (r *Rows) Int16() int16 {
+	num, err := strconv.ParseInt(r.String(), 10, 16)
+	if err != nil {
+		r.err = err
+	}
+	return int16(num)
+}
+
 func (r *Rows) Int32() int32 {
 	num, err := strconv.ParseInt(r.String(), 10, 32)
 	if err != nil {
 		r.err = err
 	}
 	return int32(num)
+}
+
+func (r *Rows) Int64() int64 {
+	num, err := strconv.ParseInt(r.String(), 10, 64)
+	if err != nil {
+		r.err = err
+	}
+	return int64(num)
+}
+
+func (r *Rows) Float32() float32 {
+	num, err := strconv.ParseFloat(r.String(), 32)
+	if err != nil {
+		r.err = err
+	}
+	return float32(num)
 }
 
 func (r *Rows) Float64() float64 {
