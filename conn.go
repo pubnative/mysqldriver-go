@@ -31,7 +31,7 @@ func (c Conn) Close() error {
 }
 
 func handshake(proto mysqlproto.Proto, conn net.Conn, username, password, database string) error {
-	packet, err := proto.NewHandshakeV10(conn)
+	packet, err := proto.ReadHandshakeV10(conn)
 	if err != nil {
 		return err
 	}
