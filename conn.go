@@ -8,8 +8,7 @@ import (
 )
 
 type Conn struct {
-	conn  net.Conn
-	proto mysqlproto.Proto
+	conn net.Conn
 }
 
 func NewConn(username, password, protocol, address, database string) (Conn, error) {
@@ -18,20 +17,19 @@ func NewConn(username, password, protocol, address, database string) (Conn, erro
 		return Conn{}, err
 	}
 
-	proto := mysqlproto.NewProto()
-	if err = handshake(proto, conn, username, password, database); err != nil {
+	if err = handshake(conn, username, password, database); err != nil {
 		return Conn{}, err
 	}
 
-	return Conn{conn, proto}, nil
+	return Conn{conn}, nil
 }
 
 func (c Conn) Close() error {
 	return c.conn.Close()
 }
 
-func handshake(proto mysqlproto.Proto, conn net.Conn, username, password, database string) error {
-	packet, err := proto.ReadHandshakeV10(conn)
+func handshake(conn net.Conn, username, password, database string) error {
+	packet, err := mysqlproto.ReadHandshakeV10(conn)
 	if err != nil {
 		return err
 	}
@@ -55,7 +53,8 @@ func handshake(proto mysqlproto.Proto, conn net.Conn, username, password, databa
 		return err
 	}
 
-	packetOK, err := proto.ReadPacket(conn)
+	streamPkt := mysqlproto.NewStreamPacket(conn)
+	packetOK, err := streamPkt.NextPacket()
 	if err != nil {
 		return err
 	}

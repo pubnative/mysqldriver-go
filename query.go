@@ -113,7 +113,7 @@ func (c Conn) Query(sql string) (*Rows, error) {
 		return nil, err
 	}
 
-	resultSet, err := c.proto.ComQueryResponse(c.conn)
+	resultSet, err := mysqlproto.ComQueryResponse(c.conn)
 	if err != nil {
 		return nil, err
 	}
