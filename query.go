@@ -41,13 +41,24 @@ func (r *Rows) Next() bool {
 }
 
 func (r *Rows) Bytes() []byte {
-	value, offset := mysqlproto.ReadRowValue(r.packet, r.offset)
+	value, offset, _ := mysqlproto.ReadRowValue(r.packet, r.offset)
 	r.offset = offset
 	return value
 }
 
+func (r *Rows) NullBytes() ([]byte, bool) {
+	value, offset, null := mysqlproto.ReadRowValue(r.packet, r.offset)
+	r.offset = offset
+	return value, null
+}
+
 func (r *Rows) String() string {
 	return string(r.Bytes())
+}
+
+func (r *Rows) NullString() (string, bool) {
+	data, null := r.NullBytes()
+	return string(data), null
 }
 
 func (r *Rows) Int() int {
@@ -59,12 +70,40 @@ func (r *Rows) Int() int {
 	return num
 }
 
+func (r *Rows) NullInt() (int, bool) {
+	str, null := r.NullString()
+	if null {
+		return 0, true
+	}
+
+	num, err := strconv.Atoi(str)
+	if err != nil {
+		r.err = err
+	}
+
+	return num, false
+}
+
 func (r *Rows) Int8() int8 {
 	num, err := strconv.ParseInt(r.String(), 10, 8)
 	if err != nil {
 		r.err = err
 	}
 	return int8(num)
+}
+
+func (r *Rows) NullInt8() (int8, bool) {
+	str, null := r.NullString()
+	if null {
+		return 0, true
+	}
+
+	num, err := strconv.ParseInt(str, 10, 8)
+	if err != nil {
+		r.err = err
+	}
+
+	return int8(num), false
 }
 
 func (r *Rows) Int16() int16 {
@@ -75,12 +114,40 @@ func (r *Rows) Int16() int16 {
 	return int16(num)
 }
 
+func (r *Rows) NullInt16() (int16, bool) {
+	str, null := r.NullString()
+	if null {
+		return 0, true
+	}
+
+	num, err := strconv.ParseInt(str, 10, 16)
+	if err != nil {
+		r.err = err
+	}
+
+	return int16(num), false
+}
+
 func (r *Rows) Int32() int32 {
 	num, err := strconv.ParseInt(r.String(), 10, 32)
 	if err != nil {
 		r.err = err
 	}
 	return int32(num)
+}
+
+func (r *Rows) NullInt32() (int32, bool) {
+	str, null := r.NullString()
+	if null {
+		return 0, true
+	}
+
+	num, err := strconv.ParseInt(str, 10, 32)
+	if err != nil {
+		r.err = err
+	}
+
+	return int32(num), false
 }
 
 func (r *Rows) Int64() int64 {
@@ -91,6 +158,20 @@ func (r *Rows) Int64() int64 {
 	return int64(num)
 }
 
+func (r *Rows) NullInt64() (int64, bool) {
+	str, null := r.NullString()
+	if null {
+		return 0, true
+	}
+
+	num, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		r.err = err
+	}
+
+	return int64(num), false
+}
+
 func (r *Rows) Float32() float32 {
 	num, err := strconv.ParseFloat(r.String(), 32)
 	if err != nil {
@@ -99,12 +180,40 @@ func (r *Rows) Float32() float32 {
 	return float32(num)
 }
 
+func (r *Rows) NullFloat32() (float32, bool) {
+	str, null := r.NullString()
+	if null {
+		return 0, true
+	}
+
+	num, err := strconv.ParseFloat(str, 32)
+	if err != nil {
+		r.err = err
+	}
+
+	return float32(num), false
+}
+
 func (r *Rows) Float64() float64 {
 	num, err := strconv.ParseFloat(r.String(), 64)
 	if err != nil {
 		r.err = err
 	}
 	return num
+}
+
+func (r *Rows) NullFloat64() (float64, bool) {
+	str, null := r.NullString()
+	if null {
+		return 0, true
+	}
+
+	num, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		r.err = err
+	}
+
+	return num, false
 }
 
 func (r *Rows) LastError() error {
