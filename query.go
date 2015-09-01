@@ -40,10 +40,14 @@ func (r *Rows) Next() bool {
 	}
 }
 
-func (r *Rows) String() string {
-	value, offset := mysqlproto.ParseString(r.packet, r.offset)
+func (r *Rows) Bytes() []byte {
+	value, offset := mysqlproto.ReadRowValue(r.packet, r.offset)
 	r.offset = offset
 	return value
+}
+
+func (r *Rows) String() string {
+	return string(r.Bytes())
 }
 
 func (r *Rows) Int() int {
