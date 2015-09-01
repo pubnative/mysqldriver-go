@@ -21,6 +21,10 @@ func NewConn(username, password, protocol, address, database string) (Conn, erro
 		return Conn{}, err
 	}
 
+	if err = setUTF8Charset(conn); err != nil {
+		return Conn{}, err
+	}
+
 	return Conn{conn}, nil
 }
 
@@ -61,6 +65,25 @@ func handshake(conn net.Conn, username, password, database string) error {
 
 	if packetOK.Payload[0] != mysqlproto.PACKET_OK {
 		return errors.New("Error occured during handshake with a server")
+	}
+
+	return nil
+}
+
+func setUTF8Charset(conn net.Conn) error {
+	data := mysqlproto.ComQueryRequest([]byte("SET NAMES utf8"))
+	if _, err := conn.Write(data); err != nil {
+		return err
+	}
+
+	streamPkt := mysqlproto.NewStreamPacket(conn)
+	packetOK, err := streamPkt.NextPacket()
+	if err != nil {
+		return err
+	}
+
+	if packetOK.Payload[0] != mysqlproto.PACKET_OK {
+		return errors.New("Error occured during setting charset")
 	}
 
 	return nil
