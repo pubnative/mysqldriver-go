@@ -62,11 +62,7 @@ func (r *Rows) NullString() (string, bool) {
 }
 
 func (r *Rows) Int() int {
-	num, err := strconv.Atoi(r.String())
-	if err != nil {
-		r.err = err
-	}
-
+	num, _ := r.NullInt()
 	return num
 }
 
@@ -85,11 +81,8 @@ func (r *Rows) NullInt() (int, bool) {
 }
 
 func (r *Rows) Int8() int8 {
-	num, err := strconv.ParseInt(r.String(), 10, 8)
-	if err != nil {
-		r.err = err
-	}
-	return int8(num)
+	num, _ := r.NullInt8()
+	return num
 }
 
 func (r *Rows) NullInt8() (int8, bool) {
@@ -107,11 +100,8 @@ func (r *Rows) NullInt8() (int8, bool) {
 }
 
 func (r *Rows) Int16() int16 {
-	num, err := strconv.ParseInt(r.String(), 10, 16)
-	if err != nil {
-		r.err = err
-	}
-	return int16(num)
+	num, _ := r.NullInt16()
+	return num
 }
 
 func (r *Rows) NullInt16() (int16, bool) {
@@ -129,11 +119,8 @@ func (r *Rows) NullInt16() (int16, bool) {
 }
 
 func (r *Rows) Int32() int32 {
-	num, err := strconv.ParseInt(r.String(), 10, 32)
-	if err != nil {
-		r.err = err
-	}
-	return int32(num)
+	num, _ := r.NullInt32()
+	return num
 }
 
 func (r *Rows) NullInt32() (int32, bool) {
@@ -151,11 +138,8 @@ func (r *Rows) NullInt32() (int32, bool) {
 }
 
 func (r *Rows) Int64() int64 {
-	num, err := strconv.ParseInt(r.String(), 10, 64)
-	if err != nil {
-		r.err = err
-	}
-	return int64(num)
+	num, _ := r.NullInt64()
+	return num
 }
 
 func (r *Rows) NullInt64() (int64, bool) {
@@ -173,11 +157,8 @@ func (r *Rows) NullInt64() (int64, bool) {
 }
 
 func (r *Rows) Float32() float32 {
-	num, err := strconv.ParseFloat(r.String(), 32)
-	if err != nil {
-		r.err = err
-	}
-	return float32(num)
+	num, _ := r.NullFloat32()
+	return num
 }
 
 func (r *Rows) NullFloat32() (float32, bool) {
@@ -195,10 +176,7 @@ func (r *Rows) NullFloat32() (float32, bool) {
 }
 
 func (r *Rows) Float64() float64 {
-	num, err := strconv.ParseFloat(r.String(), 64)
-	if err != nil {
-		r.err = err
-	}
+	num, _ := r.NullFloat64()
 	return num
 }
 
@@ -217,10 +195,7 @@ func (r *Rows) NullFloat64() (float64, bool) {
 }
 
 func (r *Rows) Bool() bool {
-	b, err := strconv.ParseBool(r.String())
-	if err != nil {
-		r.err = err
-	}
+	b, _ := r.NullBool()
 	return b
 }
 
