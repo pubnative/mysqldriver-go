@@ -216,6 +216,27 @@ func (r *Rows) NullFloat64() (float64, bool) {
 	return num, false
 }
 
+func (r *Rows) Bool() bool {
+	b, err := strconv.ParseBool(r.String())
+	if err != nil {
+		r.err = err
+	}
+	return b
+}
+
+func (r *Rows) NullBool() (bool, bool) {
+	str, null := r.NullString()
+	if null {
+		return false, true
+	}
+
+	b, err := strconv.ParseBool(str)
+	if err != nil {
+		r.err = err
+	}
+	return b, false
+}
+
 func (r *Rows) LastError() error {
 	return r.err
 }
