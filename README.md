@@ -1,1 +1,1 @@
-# mysqlclient-go
+# mysqldriver-go

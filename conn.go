@@ -1,4 +1,4 @@
-package mysqlclient
+package mysqldriver
 
 import (
 	"errors"
