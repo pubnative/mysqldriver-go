@@ -11,6 +11,10 @@ type Conn struct {
 	stream *mysqlproto.Stream
 }
 
+type Stats struct {
+	Syscalls int
+}
+
 func NewConn(username, password, protocol, address, database string) (Conn, error) {
 	conn, err := net.Dial(protocol, address)
 	if err != nil {
@@ -32,6 +36,12 @@ func NewConn(username, password, protocol, address, database string) (Conn, erro
 
 func (c Conn) Close() error {
 	return c.stream.Close()
+}
+
+func (c Conn) Stats() Stats {
+	return Stats{
+		Syscalls: c.stream.Syscalls(),
+	}
 }
 
 func handshake(stream *mysqlproto.Stream, username, password, database string) error {

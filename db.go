@@ -49,6 +49,8 @@ func (db *DB) PutConn(conn Conn) (err error) {
 		}
 	}()
 
+	conn.stream.ResetStats()
+
 	select {
 	case db.conns <- conn:
 	default:
