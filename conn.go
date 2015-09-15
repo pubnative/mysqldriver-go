@@ -44,6 +44,12 @@ func (c Conn) Stats() Stats {
 	}
 }
 
+func (s Stats) Add(stats Stats) Stats {
+	return Stats{
+		Syscalls: s.Syscalls + stats.Syscalls,
+	}
+}
+
 func handshake(stream *mysqlproto.Stream, username, password, database string) error {
 	packet, err := mysqlproto.ReadHandshakeV10(stream)
 	if err != nil {
