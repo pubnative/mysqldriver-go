@@ -8,7 +8,7 @@ import (
 )
 
 type Conn struct {
-	conn net.Conn
+	stream *mysqlproto.Stream
 }
 
 func NewConn(username, password, protocol, address, database string) (Conn, error) {
@@ -17,23 +17,25 @@ func NewConn(username, password, protocol, address, database string) (Conn, erro
 		return Conn{}, err
 	}
 
-	if err = handshake(conn, username, password, database); err != nil {
+	stream := mysqlproto.NewStream(conn)
+
+	if err = handshake(stream, username, password, database); err != nil {
 		return Conn{}, err
 	}
 
-	if err = setUTF8Charset(conn); err != nil {
+	if err = setUTF8Charset(stream); err != nil {
 		return Conn{}, err
 	}
 
-	return Conn{conn}, nil
+	return Conn{stream}, nil
 }
 
 func (c Conn) Close() error {
-	return c.conn.Close()
+	return c.stream.Close()
 }
 
-func handshake(conn net.Conn, username, password, database string) error {
-	packet, err := mysqlproto.ReadHandshakeV10(conn)
+func handshake(stream *mysqlproto.Stream, username, password, database string) error {
+	packet, err := mysqlproto.ReadHandshakeV10(stream)
 	if err != nil {
 		return err
 	}
@@ -53,12 +55,11 @@ func handshake(conn net.Conn, username, password, database string) error {
 		nil,
 	)
 
-	if _, err := conn.Write(res); err != nil {
+	if _, err := stream.Write(res); err != nil {
 		return err
 	}
 
-	streamPkt := mysqlproto.NewStreamPacket(conn)
-	packetOK, err := streamPkt.NextPacket()
+	packetOK, err := stream.NextPacket()
 	if err != nil {
 		return err
 	}
@@ -70,14 +71,13 @@ func handshake(conn net.Conn, username, password, database string) error {
 	return nil
 }
 
-func setUTF8Charset(conn net.Conn) error {
+func setUTF8Charset(stream *mysqlproto.Stream) error {
 	data := mysqlproto.ComQueryRequest([]byte("SET NAMES utf8"))
-	if _, err := conn.Write(data); err != nil {
+	if _, err := stream.Write(data); err != nil {
 		return err
 	}
 
-	streamPkt := mysqlproto.NewStreamPacket(conn)
-	packetOK, err := streamPkt.NextPacket()
+	packetOK, err := stream.NextPacket()
 	if err != nil {
 		return err
 	}
