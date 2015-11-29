@@ -56,12 +56,8 @@ func handshake(stream *mysqlproto.Stream, username, password, database string) e
 		return err
 	}
 
-	flags := packet.CapabilityFlags
-	flags &= ^mysqlproto.CLIENT_SSL
-	flags &= ^mysqlproto.CLIENT_COMPRESS
-
 	res := mysqlproto.HandshakeResponse41(
-		packet.CapabilityFlags&(flags),
+		packet.CapabilityFlags,
 		packet.CharacterSet,
 		username,
 		password,
