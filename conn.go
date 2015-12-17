@@ -1,7 +1,7 @@
 package mysqldriver
 
 import (
-	"errors"
+	"fmt"
 	"net"
 
 	"github.com/pubnative/mysqlproto-go"
@@ -71,16 +71,12 @@ func handshake(stream *mysqlproto.Stream, username, password, database string) e
 		return err
 	}
 
-	packetOK, err := stream.NextPacket()
+	pkt, err := stream.NextPacket()
 	if err != nil {
 		return err
 	}
 
-	if packetOK.Payload[0] != mysqlproto.PACKET_OK {
-		return errors.New("Error occured during handshake with a server")
-	}
-
-	return nil
+	return handleOK(pkt.Payload)
 }
 
 func setUTF8Charset(stream *mysqlproto.Stream) error {
@@ -89,14 +85,26 @@ func setUTF8Charset(stream *mysqlproto.Stream) error {
 		return err
 	}
 
-	packetOK, err := stream.NextPacket()
+	packet, err := stream.NextPacket()
 	if err != nil {
 		return err
 	}
 
-	if packetOK.Payload[0] != mysqlproto.PACKET_OK {
-		return errors.New("Error occured during setting charset")
+	return handleOK(packet.Payload)
+}
+
+func handleOK(payload []byte) error {
+	if payload[0] == mysqlproto.PACKET_OK {
+		return nil
 	}
 
-	return nil
+	if payload[0] == mysqlproto.PACKET_ERR {
+		errPacket, err := mysqlproto.ParseERRPacket(payload)
+		if err != nil {
+			return err
+		}
+		return errPacket
+	}
+
+	return fmt.Errorf("mysqldriver: unknown error occured. Payload: %x", payload)
 }
