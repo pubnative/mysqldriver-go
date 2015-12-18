@@ -1,7 +1,6 @@
 package mysqldriver
 
 import (
-	"fmt"
 	"net"
 
 	"github.com/pubnative/mysqlproto-go"
@@ -91,20 +90,4 @@ func setUTF8Charset(stream *mysqlproto.Stream) error {
 	}
 
 	return handleOK(packet.Payload)
-}
-
-func handleOK(payload []byte) error {
-	if payload[0] == mysqlproto.PACKET_OK {
-		return nil
-	}
-
-	if payload[0] == mysqlproto.PACKET_ERR {
-		errPacket, err := mysqlproto.ParseERRPacket(payload)
-		if err != nil {
-			return err
-		}
-		return errPacket
-	}
-
-	return fmt.Errorf("mysqldriver: unknown error occured. Payload: %x", payload)
 }

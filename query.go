@@ -229,3 +229,17 @@ func (c Conn) Query(sql string) (*Rows, error) {
 
 	return &Rows{resultSet: resultSet}, nil
 }
+
+func (c Conn) Exec(sql string) error {
+	req := mysqlproto.ComQueryRequest([]byte(sql))
+	if _, err := c.stream.Write(req); err != nil {
+		return err
+	}
+
+	packet, err := c.stream.NextPacket()
+	if err != nil {
+		return err
+	}
+
+	return handleOK(packet.Payload)
+}
