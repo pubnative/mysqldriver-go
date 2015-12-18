@@ -218,11 +218,11 @@ func (r *Rows) LastError() error {
 
 func (c Conn) Query(sql string) (*Rows, error) {
 	req := mysqlproto.ComQueryRequest([]byte(sql))
-	if _, err := c.stream.Write(req); err != nil {
+	if _, err := c.conn.Write(req); err != nil {
 		return nil, err
 	}
 
-	resultSet, err := mysqlproto.ComQueryResponse(c.stream)
+	resultSet, err := mysqlproto.ComQueryResponse(c.conn)
 	if err != nil {
 		return nil, err
 	}
@@ -232,14 +232,14 @@ func (c Conn) Query(sql string) (*Rows, error) {
 
 func (c Conn) Exec(sql string) error {
 	req := mysqlproto.ComQueryRequest([]byte(sql))
-	if _, err := c.stream.Write(req); err != nil {
+	if _, err := c.conn.Write(req); err != nil {
 		return err
 	}
 
-	packet, err := c.stream.NextPacket()
+	packet, err := c.conn.NextPacket()
 	if err != nil {
 		return err
 	}
 
-	return handleOK(packet.Payload)
+	return handleOK(packet.Payload, c.conn.CapabilityFlags)
 }

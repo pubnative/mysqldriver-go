@@ -6,8 +6,16 @@ import (
 	"github.com/pubnative/mysqlproto-go"
 )
 
+var capabilityFlags = mysqlproto.CLIENT_LONG_PASSWORD |
+	mysqlproto.CLIENT_FOUND_ROWS |
+	mysqlproto.CLIENT_LONG_FLAG |
+	mysqlproto.CLIENT_CONNECT_WITH_DB |
+	mysqlproto.CLIENT_PLUGIN_AUTH |
+	mysqlproto.CLIENT_TRANSACTIONS |
+	mysqlproto.CLIENT_PROTOCOL_41
+
 type Conn struct {
-	stream *mysqlproto.Stream
+	conn mysqlproto.Conn
 }
 
 type Stats struct {
@@ -20,9 +28,12 @@ func NewConn(username, password, protocol, address, database string) (Conn, erro
 		return Conn{}, err
 	}
 
-	stream := mysqlproto.NewStream(conn)
+	stream, err := mysqlproto.Handshake(
+		conn, capabilityFlags,
+		username, password, database, nil,
+	)
 
-	if err = handshake(stream, username, password, database); err != nil {
+	if err != nil {
 		return Conn{}, err
 	}
 
@@ -34,12 +45,12 @@ func NewConn(username, password, protocol, address, database string) (Conn, erro
 }
 
 func (c Conn) Close() error {
-	return c.stream.Close()
+	return c.conn.Close()
 }
 
 func (c Conn) Stats() Stats {
 	return Stats{
-		Syscalls: c.stream.Syscalls(),
+		Syscalls: c.conn.Syscalls(),
 	}
 }
 
@@ -49,45 +60,16 @@ func (s Stats) Add(stats Stats) Stats {
 	}
 }
 
-func handshake(stream *mysqlproto.Stream, username, password, database string) error {
-	packet, err := mysqlproto.ReadHandshakeV10(stream)
-	if err != nil {
-		return err
-	}
-
-	res := mysqlproto.HandshakeResponse41(
-		packet.CapabilityFlags,
-		packet.CharacterSet,
-		username,
-		password,
-		packet.AuthPluginData,
-		database,
-		packet.AuthPluginName,
-		nil,
-	)
-
-	if _, err := stream.Write(res); err != nil {
-		return err
-	}
-
-	pkt, err := stream.NextPacket()
-	if err != nil {
-		return err
-	}
-
-	return handleOK(pkt.Payload)
-}
-
-func setUTF8Charset(stream *mysqlproto.Stream) error {
+func setUTF8Charset(conn mysqlproto.Conn) error {
 	data := mysqlproto.ComQueryRequest([]byte("SET NAMES utf8"))
-	if _, err := stream.Write(data); err != nil {
+	if _, err := conn.Write(data); err != nil {
 		return err
 	}
 
-	packet, err := stream.NextPacket()
+	packet, err := conn.NextPacket()
 	if err != nil {
 		return err
 	}
 
-	return handleOK(packet.Payload)
+	return handleOK(packet.Payload, conn.CapabilityFlags)
 }
