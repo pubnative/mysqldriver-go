@@ -230,16 +230,26 @@ func (c Conn) Query(sql string) (*Rows, error) {
 	return &Rows{resultSet: resultSet}, nil
 }
 
-func (c Conn) Exec(sql string) error {
+func (c Conn) Exec(sql string) (mysqlproto.OKPacket, error) {
 	req := mysqlproto.ComQueryRequest([]byte(sql))
 	if _, err := c.conn.Write(req); err != nil {
-		return err
+		return mysqlproto.OKPacket{}, err
 	}
 
 	packet, err := c.conn.NextPacket()
 	if err != nil {
-		return err
+		return mysqlproto.OKPacket{}, err
 	}
 
-	return handleOK(packet.Payload, c.conn.CapabilityFlags)
+	if packet.Payload[0] == mysqlproto.PACKET_OK {
+		pkt, err := mysqlproto.ParseOKPacket(packet.Payload, c.conn.CapabilityFlags)
+		return pkt, err
+	} else {
+		pkt, err := mysqlproto.ParseERRPacket(packet.Payload, c.conn.CapabilityFlags)
+		if err == nil {
+			return mysqlproto.OKPacket{}, pkt
+		} else {
+			return mysqlproto.OKPacket{}, err
+		}
+	}
 }

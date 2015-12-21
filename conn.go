@@ -12,7 +12,8 @@ var capabilityFlags = mysqlproto.CLIENT_LONG_PASSWORD |
 	mysqlproto.CLIENT_CONNECT_WITH_DB |
 	mysqlproto.CLIENT_PLUGIN_AUTH |
 	mysqlproto.CLIENT_TRANSACTIONS |
-	mysqlproto.CLIENT_PROTOCOL_41
+	mysqlproto.CLIENT_PROTOCOL_41 |
+	mysqlproto.CLIENT_SESSION_TRACK
 
 type Conn struct {
 	conn mysqlproto.Conn
