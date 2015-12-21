@@ -29,7 +29,7 @@ func NewConn(username, password, protocol, address, database string) (Conn, erro
 		return Conn{}, err
 	}
 
-	stream, err := mysqlproto.Handshake(
+	stream, err := mysqlproto.ConnectPlainHandshake(
 		conn, capabilityFlags,
 		username, password, database, nil,
 	)
