@@ -7,11 +7,11 @@ import (
 )
 
 func handleOK(payload []byte, capabilityFlags uint32) error {
-	if payload[0] == mysqlproto.PACKET_OK {
+	if payload[0] == mysqlproto.OK_PACKET {
 		return nil
 	}
 
-	if payload[0] == mysqlproto.PACKET_ERR {
+	if payload[0] == mysqlproto.ERR_PACKET {
 		errPacket, err := mysqlproto.ParseERRPacket(payload, capabilityFlags)
 		if err != nil {
 			return err

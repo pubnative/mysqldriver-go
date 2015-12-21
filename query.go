@@ -241,7 +241,7 @@ func (c Conn) Exec(sql string) (mysqlproto.OKPacket, error) {
 		return mysqlproto.OKPacket{}, err
 	}
 
-	if packet.Payload[0] == mysqlproto.PACKET_OK {
+	if packet.Payload[0] == mysqlproto.OK_PACKET {
 		pkt, err := mysqlproto.ParseOKPacket(packet.Payload, c.conn.CapabilityFlags)
 		return pkt, err
 	} else {
