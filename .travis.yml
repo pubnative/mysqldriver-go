@@ -1,0 +1,7 @@
+language: go
+go:
+  - tip
+services:
+  - mysql
+before_script:
+  - mysql -e 'create database test;'
