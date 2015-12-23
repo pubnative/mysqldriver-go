@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var ErrClosedDB = errors.New("get connection from closed DB")
+var ErrClosedDB = errors.New("mysqldriver: can't get connection from the closed DB")
 
 type DB struct {
 	conns    chan Conn
