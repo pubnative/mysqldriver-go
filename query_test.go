@@ -1,8 +1,8 @@
 package mysqldriver
 
 import (
-	"testing"
 	"strconv"
+	"testing"
 
 	"github.com/pubnative/mysqlproto-go"
 	"github.com/stretchr/testify/assert"
