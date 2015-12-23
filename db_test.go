@@ -67,6 +67,25 @@ func TestDBPutConnClosesConnectionWhenDBIsClosed(t *testing.T) {
 	assert.True(t, s.closed)
 }
 
+func TestDBCloseClosesAllConnections(t *testing.T) {
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 2)
+	s1 := &stream{}
+	conn1 := Conn{mysqlproto.Conn{mysqlproto.NewStream(s1), 0}}
+	db.PutConn(conn1)
+	s2 := &stream{}
+	conn2 := Conn{mysqlproto.Conn{mysqlproto.NewStream(s2), 0}}
+	db.PutConn(conn2)
+
+	assert.Len(t, db.conns, 2)
+	assert.False(t, s1.closed)
+	assert.False(t, s2.closed)
+	db.Close()
+	assert.True(t, s1.closed)
+	assert.True(t, s2.closed)
+	_, more := <-db.conns
+	assert.False(t, more)
+}
+
 func TestParseDataSourceFull(t *testing.T) {
 	source := "root:123@tcp(127.0.0.1:3306)/test"
 	usr, pass, proto, addr, dbname := parseDataSource(source)
