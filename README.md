@@ -18,3 +18,6 @@ go-sql-driver: records read 10000  HEAP 30010  time 3.377241ms
 
 ## Dependencies
 1. [pubnative/mysqlproto-go](https://github.com/pubnative/mysqlproto-go) MySQL protocol implementation
+
+## Installation
+`go get github.com/pubnative/mysqldriver-go`
