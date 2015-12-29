@@ -21,3 +21,79 @@ go-sql-driver: records read 10000  HEAP 30010  time 3.377241ms
 
 ## Installation
 `go get github.com/pubnative/mysqldriver-go`
+
+## Quick Start
+```go
+package main
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/pubnative/mysqldriver-go"
+)
+
+type Person struct {
+	Name    string
+	Age     int
+	Married bool
+}
+
+func main() {
+	// initialize DB pool of 10 connections
+	db := mysqldriver.NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+
+	// obtain connection from the pool
+	conn, err := db.GetConn()
+	if err != nil {
+		panic(err)
+	}
+
+	if _, err := conn.Exec(`CREATE TABLE IF NOT EXISTS people (
+        id int NOT NULL AUTO_INCREMENT,
+    	name varchar(255),
+    	age int,
+        married tinyint,
+        PRIMARY KEY (id)
+    )`); err != nil {
+		panic(err)
+	}
+
+	for i := 0; i < 10; i++ {
+		num := strconv.Itoa(i)
+		_, err := conn.Exec(`
+            INSERT INTO people(name,age,married) 
+            VALUES("name` + num + `",` + num + `,` + strconv.Itoa(i%2) + `)
+        `)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	rows, err := conn.Query("SELECT name,age,married FROM people")
+	if err != nil {
+		panic(err)
+	}
+
+	for rows.Next() { // switch cursor to the next unread row
+		person := Person{
+			Name:    rows.String(),
+			Age:     rows.Int(),
+			Married: rows.Bool(),
+		}
+		fmt.Printf("%#v\n", person)
+	}
+
+	// always should be checked if there is an error during reading rows
+	if err := rows.LastError(); err != nil {
+		panic(err)
+	}
+
+	// return connection to the pool for further reuse
+	if err := db.PutConn(conn); err != nil {
+		panic(err)
+	}
+
+	db.Close() // close the pool and all connections in it
+}
+```
