@@ -16,6 +16,12 @@ type DB struct {
 	database string
 }
 
+// NewDB initializes pool of connections but doesn't
+// establishes connection to DB.
+//
+// Pool size is fixed and can't be resized later.
+// DataSource parameter has the following format:
+// [username[:password]@][protocol[(address)]]/dbname
 func NewDB(dataSource string, pool int) *DB {
 	usr, pass, proto, addr, dbname := parseDataSource(dataSource)
 	conns := make(chan Conn, pool)
@@ -29,6 +35,10 @@ func NewDB(dataSource string, pool int) *DB {
 	}
 }
 
+// GetConn gets connection from the pool if there is one or
+// establishes a new one.This method always returns the connection
+// regardless the pool size. When DB is closed, this method
+// returns ErrClosedDB error.
 func (db *DB) GetConn() (Conn, error) {
 	select {
 	case conn, more := <-db.conns:
@@ -41,6 +51,8 @@ func (db *DB) GetConn() (Conn, error) {
 	}
 }
 
+// PutConn returns connection to the pool.
+// When pool is reached, connection is closed.
 func (db *DB) PutConn(conn Conn) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
@@ -60,6 +72,9 @@ func (db *DB) PutConn(conn Conn) (err error) {
 	return
 }
 
+// Close closes all connections in a pool
+// and doesn't allow to establish new ones
+// to DB any more
 func (db *DB) Close() {
 	close(db.conns)
 	for {

@@ -121,3 +121,8 @@ type stream struct{ closed bool }
 func (s *stream) Write([]byte) (int, error) { return 0, nil }
 func (s *stream) Read([]byte) (int, error)  { return 0, nil }
 func (s *stream) Close() error              { s.closed = true; return nil }
+
+// Initializes the pool for 10 connections
+func ExampleNewDB() {
+	NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+}
