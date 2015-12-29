@@ -7,6 +7,7 @@ import (
 
 var ErrClosedDB = errors.New("mysqldriver: can't get connection from the closed DB")
 
+// DB manages pool of connection
 type DB struct {
 	conns    chan Conn
 	username string
