@@ -15,10 +15,12 @@ var capabilityFlags = mysqlproto.CLIENT_LONG_PASSWORD |
 	mysqlproto.CLIENT_PROTOCOL_41 |
 	mysqlproto.CLIENT_SESSION_TRACK
 
+// Conn represents connection to MySQL server
 type Conn struct {
 	conn mysqlproto.Conn
 }
 
+// Contains connection statistics
 type Stats struct {
 	Syscalls int // number of system calls performed to read all packets
 }
