@@ -16,7 +16,8 @@ type Rows struct {
 }
 
 // Next moves cursor to the next unread row.
-// It returns false when there are no more rows left.
+// It returns false when there are no more rows left
+// or an error occurred during reading rows (see LastError() function)
 // This function must be called before reading first row
 // and continue being called until it returns false.
 //  rows, _ := conn.Query("SELECT * FROM people LIMIT 2")
@@ -240,6 +241,19 @@ func (r *Rows) NullBool() (bool, bool) {
 	return b, false
 }
 
+// LastError returns the error if any occurred during
+// reading result set of SELECT query. This method should
+// be always called after reading all rows.
+//  rows, err := conn.Query("SELECT * FROM dogs")
+//  if err != nil {
+//  	// handle error
+//  }
+//  for rows.Next() {
+//  	// read values
+//  }
+//  if err = rows.LastError(); err != nil {
+//  	// handle error
+//  }
 func (r *Rows) LastError() error {
 	return r.err
 }
