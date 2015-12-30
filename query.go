@@ -272,6 +272,17 @@ func (c Conn) Query(sql string) (*Rows, error) {
 	return &Rows{resultSet: resultSet}, nil
 }
 
+// Exec executes queries or other commands which expect to return OK_PACKET
+// including INSERT/UPDATE/DELETE queries. For SELECT query see func (Conn) Query
+//  okPacket, err := conn.Exec("DELETE FROM dogs WHERE id = 1")
+//	if err == nil {
+//  	return nil // query was performed successfully
+//  }
+//  if errPacket, ok := err.(mysqlproto.ERRPacket); ok {
+//  	return errPacket // retrieve more information about the error
+//  } else {
+//  	return err // generic error
+//  }
 func (c Conn) Exec(sql string) (mysqlproto.OKPacket, error) {
 	req := mysqlproto.ComQueryRequest([]byte(sql))
 	if _, err := c.conn.Write(req); err != nil {
