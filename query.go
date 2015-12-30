@@ -258,6 +258,8 @@ func (r *Rows) LastError() error {
 	return r.err
 }
 
+// Query function is used only for SELECT query.
+// For all other queries and commands see func (c Conn) Exec
 func (c Conn) Query(sql string) (*Rows, error) {
 	req := mysqlproto.ComQueryRequest([]byte(sql))
 	if _, err := c.conn.Write(req); err != nil {

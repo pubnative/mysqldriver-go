@@ -271,3 +271,57 @@ func setup(t *testing.T, fn func(conn Conn)) {
 		assert.Nil(t, err)
 	}()
 }
+
+func ExampleConn_Query_default() {
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+	conn, err := db.GetConn()
+	if err != nil {
+		// handle error
+	}
+	rows, err := conn.Query("SELECT id,badge,age,honors,length,weight,height,male,name,info FROM dogs")
+	if err != nil {
+		// handle error
+	}
+	for rows.Next() {
+		_ = rows.Int()     // id
+		_ = rows.Int8()    // badge
+		_ = rows.Int16()   // age
+		_ = rows.Int32()   // honors
+		_ = rows.Int64()   // length
+		_ = rows.Float32() // weight
+		_ = rows.Float64() // height
+		_ = rows.Bool()    // male
+		_ = rows.String()  // name
+		_ = rows.Bytes()   // info
+	}
+	if err = rows.LastError(); err != nil {
+		// handle error
+	}
+}
+
+func ExampleConn_Query_null() {
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+	conn, err := db.GetConn()
+	if err != nil {
+		// handle error
+	}
+	rows, err := conn.Query("SELECT id,badge,age,honors,length,weight,height,male,name,info FROM dogs")
+	if err != nil {
+		// handle error
+	}
+	for rows.Next() {
+		_, _ = rows.NullInt()     // id
+		_, _ = rows.NullInt8()    // badge
+		_, _ = rows.NullInt16()   // age
+		_, _ = rows.NullInt32()   // honors
+		_, _ = rows.NullInt64()   // length
+		_, _ = rows.NullFloat32() // weight
+		_, _ = rows.NullFloat64() // height
+		_, _ = rows.NullBool()    // male
+		_, _ = rows.NullString()  // name
+		_, _ = rows.NullBytes()   // info
+	}
+	if err = rows.LastError(); err != nil {
+		// handle error
+	}
+}
