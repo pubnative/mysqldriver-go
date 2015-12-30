@@ -33,15 +33,15 @@ type Rows struct {
 // It's required to read all rows before performing another query
 // because connection contains sequential stream of rows.
 //  rows, _ := conn.Query("SELECT name FROM dogs LIMIT 1")
-//  rows.Next()
+//  rows.Next()   // move cursor to the first row
 //  rows.String() // dog's name
 //  rows, _ = conn.Query("SELECT name FROM cats LIMIT 2")
-//  rows.Next() // switch to the second row of first query
+//  rows.Next()   // move cursor to the second row of first query
 //  rows.String() // still dog's name
-//  rows.Next() // returns false. closes the first stream of rows
-//  rows.Next() // switch to the first row of second query
+//  rows.Next()   // returns false. closes the first stream of rows
+//  rows.Next()   // move cursor to the first row of second query
 //  rows.String() // cat's name
-//  rows.Next() // returns false. closes the second stream of rows
+//  rows.Next()   // returns false. closes the second stream of rows
 func (r *Rows) Next() bool {
 	if r.eof {
 		return false
