@@ -6,6 +6,7 @@ import (
 	"github.com/pubnative/mysqlproto-go"
 )
 
+// Rows represents result set of SELECT query
 type Rows struct {
 	resultSet mysqlproto.ResultSet
 	packet    []byte
@@ -14,6 +15,33 @@ type Rows struct {
 	err       error
 }
 
+// Next moves cursor to the next unread row.
+// It returns false when there are no more rows left.
+// This function must be called before reading first row
+// and continue being called until it returns false.
+//  rows, _ := conn.Query("SELECT * FROM people LIMIT 2")
+//  rows.Next() // move cursor to the first row
+//  // read values from the first row
+//  rows.Next() // move cursor to the second row
+//  // read values from the second row
+//  rows.Next() // drain the stream
+// Best practice is to call Next() function in a loop:
+//  rows, _ := conn.Query("SELECT * FROM people")
+//  for rows.Next() {
+//  	// read values from the row
+//  }
+// It's required to read all rows before performing another query
+// because connection contains sequential stream of rows.
+//  rows, _ := conn.Query("SELECT name FROM dogs LIMIT 1")
+//  rows.Next()
+//  rows.String() // dog's name
+//  rows, _ = conn.Query("SELECT name FROM cats LIMIT 2")
+//  rows.Next() // switch to the second row of first query
+//  rows.String() // still dog's name
+//  rows.Next() // returns false. closes the first stream of rows
+//  rows.Next() // switch to the first row of second query
+//  rows.String() // cat's name
+//  rows.Next() // returns false. closes the second stream of rows
 func (r *Rows) Next() bool {
 	if r.eof {
 		return false
