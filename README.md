@@ -21,7 +21,7 @@ Because of the above and the need for a GC-friendly MySQL driver, we've decided 
 
 The following [Benchmark](https://github.com/pubnative/mysqldriver-go/blob/master/benchmarks/main.go) was ran on a `MacBook Pro (Retina, 13-inch, Late 2013), 2.8 GHz Intel Core i7, 16 GB 1600 MHz DDR3`:
 
-[![comparison](https://cloud.githubusercontent.com/assets/296795/12074709/9dbf19a2-b162-11e5-8dd0-a973b57895b0.png)](https://jsfiddle.net/zs83oze6/1/)
+[![comparison](https://cloud.githubusercontent.com/assets/296795/12080839/72fcf55c-b268-11e5-9632-743ec07c2b80.png)](https://jsfiddle.net/zs83oze6/3/)
 ```zsh
 ➜  benchmarks git:(master) ✗ go run main.go 
 mysqldriver: records read 100  HEAP 129  time 722.293µs
