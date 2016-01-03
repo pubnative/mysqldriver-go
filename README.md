@@ -17,7 +17,7 @@ However, using this generic interface, especialy the [`Scan`](https://golang.org
 
 Reading a massive number of records from a DB can significantly increase the GC pause-time which can be very sensitive for high-throughput, low-latency applications. 
 
-Because of the above and the need for a GC-friendly MySQL driver, we've decided and not to follow the [database/sql](https://golang.org/pkg/database/sql/) interface and write the this driver.
+Because of the above and the need for a GC-friendly MySQL driver, we've decided and not to follow the [database/sql](https://golang.org/pkg/database/sql/) interface and write this driver.
 
 The following [Benchmark](https://github.com/pubnative/mysqldriver-go/blob/master/benchmarks/main.go) was ran on a `MacBook Pro (Retina, 13-inch, Late 2013), 2.8 GHz Intel Core i7, 16 GB 1600 MHz DDR3`:
 
