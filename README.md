@@ -2,10 +2,25 @@
 [![Build Status](https://travis-ci.org/pubnative/mysqldriver-go.svg?branch=master)](https://travis-ci.org/pubnative/mysqldriver-go)
 [![GoDoc](https://godoc.org/github.com/pubnative/mysqldriver-go?status.svg)](https://godoc.org/github.com/pubnative/mysqldriver-go)
 
-## Motivation
-There are already many MySQL drivers which implement [database/sql](https://golang.org/pkg/database/sql/) interface however using this generic interface, especialy [Scan](https://golang.org/pkg/database/sql/#Row.Scan) method, requires to store many objects in a HEAP. Reading massive number of records from DB can significantly increase GC pause time which is very sensitive for low-latency applications. Due to this issue, was made a decision to write another MySQL driver which is GC friendly as much as possible, and not to follow [database/sql](https://golang.org/pkg/database/sql/) interface.
+## Table of contents
 
-[Benchmark](https://github.com/pubnative/mysqldriver-go/blob/master/benchmarks/main.go) was performed on MacBook Pro (Retina, 13-inch, Late 2013), 2.8 GHz Intel Core i7, 16 GB 1600 MHz DDR3
+- [Motivation](#motivation)
+- [Goal](#goal)
+- [Documentation](#documentation)
+- [Dependencies](#dependencies)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+
+## Motivation
+There are many MySQL drivers which implement the [database/sql](https://golang.org/pkg/database/sql/) interface.
+However, using this generic interface, especialy the [`Scan`](https://golang.org/pkg/database/sql/#Row.Scan) method, requires storing many objects in the heap. 
+
+Reading a massive number of records from a DB can significantly increase the GC pause-time which can be very sensitive for high-throughput, low-latency applications. 
+
+Because of the above and the need for a GC-friendly MySQL driver, we've decided and not to follow the [database/sql](https://golang.org/pkg/database/sql/) interface and write the this driver.
+
+The following [Benchmark](https://github.com/pubnative/mysqldriver-go/blob/master/benchmarks/main.go) was ran on a `MacBook Pro (Retina, 13-inch, Late 2013), 2.8 GHz Intel Core i7, 16 GB 1600 MHz DDR3`:
+
 [![comparison](https://cloud.githubusercontent.com/assets/296795/12074709/9dbf19a2-b162-11e5-8dd0-a973b57895b0.png)](https://jsfiddle.net/zs83oze6/1/)
 ```zsh
 ➜  benchmarks git:(master) ✗ go run main.go 
@@ -18,7 +33,9 @@ go-sql-driver: records read 10000  HEAP 30010  time 3.377241ms
 ```
 
 ## Goal
-Main goals of this library are: *performance* over flexibility, *simplicity* over complexity. Any new feature shouldn't decrease performance of exising code, any improvements to productivity are always welcome. There are no plan to convert this library into ORM, it should stay simple however support all MySQL features.
+The main goals of this library are: *performance* over flexibility, *simplicity* over complexity. Any new feature shouldn't decrease the performance of the exising code base. 
+
+Any improvements to productivity are always welcome. There is no plan to convert this library into an ORM. The plan is to keep it simple, and still keep supporting all of the MySQL features.
 
 ## Documentation
 1. [API Reference](https://godoc.org/github.com/pubnative/mysqldriver-go)
