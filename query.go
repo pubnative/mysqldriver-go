@@ -69,32 +69,48 @@ func (r *Rows) Next() bool {
 	}
 }
 
+// Bytes returns value as slice of bytes.
+// NULL value is represented as empty slice.
 func (r *Rows) Bytes() []byte {
-	value, offset, _ := mysqlproto.ReadRowValue(r.packet, r.offset)
-	r.offset = offset
+	value, _ := r.NullBytes()
 	return value
 }
 
+// NullBytes returns value as a slice of bytes
+// and NULL indicator. When value is NULL, second parameter is true.
 func (r *Rows) NullBytes() ([]byte, bool) {
 	value, offset, null := mysqlproto.ReadRowValue(r.packet, r.offset)
 	r.offset = offset
 	return value, null
 }
 
+// String returns value as a string.
+// NULL value is represented as an empty string.
 func (r *Rows) String() string {
-	return string(r.Bytes())
+	value, _ := r.NullString()
+	return value
 }
 
+// NullString returns string as a value and
+// NULL indicator. When value is NULL, second parameter is true.
 func (r *Rows) NullString() (string, bool) {
 	data, null := r.NullBytes()
 	return string(data), null
 }
 
+// Int returns value as an int.
+// NULL value is represented as 0.
+// Int method uses strconv.Atoi to convert string into int.
+// (see https://golang.org/pkg/strconv/#Atoi)
 func (r *Rows) Int() int {
 	num, _ := r.NullInt()
 	return num
 }
 
+// NullInt returns value as an int and NULL indicator.
+// When value is NULL, second parameter is true.
+// NullInt method uses strconv.Atoi to convert string into int.
+// (see https://golang.org/pkg/strconv/#Atoi)
 func (r *Rows) NullInt() (int, bool) {
 	str, null := r.NullString()
 	if null {
@@ -109,11 +125,19 @@ func (r *Rows) NullInt() (int, bool) {
 	return num, false
 }
 
+// Int8 returns value as an int8.
+// NULL value is represented as 0.
+// Int8 method uses strconv.ParseInt to convert string into int8.
+// (see https://golang.org/pkg/strconv/#ParseInt)
 func (r *Rows) Int8() int8 {
 	num, _ := r.NullInt8()
 	return num
 }
 
+// NullInt8 returns value as an int8 and NULL indicator.
+// When value is NULL, second parameter is true.
+// NullInt8 method uses strconv.ParseInt to convert string into int8.
+// (see https://golang.org/pkg/strconv/#ParseInt)
 func (r *Rows) NullInt8() (int8, bool) {
 	str, null := r.NullString()
 	if null {
@@ -128,11 +152,19 @@ func (r *Rows) NullInt8() (int8, bool) {
 	return int8(num), false
 }
 
+// Int16 returns value as an int16.
+// NULL value is represented as 0.
+// Int16 method uses strconv.ParseInt to convert string into int16.
+// (see https://golang.org/pkg/strconv/#ParseInt)
 func (r *Rows) Int16() int16 {
 	num, _ := r.NullInt16()
 	return num
 }
 
+// NullInt16 returns value as an int8 and NULL indicator.
+// When value is NULL, second parameter is true.
+// NullInt16 method uses strconv.ParseInt to convert string into int16.
+// (see https://golang.org/pkg/strconv/#ParseInt)
 func (r *Rows) NullInt16() (int16, bool) {
 	str, null := r.NullString()
 	if null {
@@ -147,11 +179,19 @@ func (r *Rows) NullInt16() (int16, bool) {
 	return int16(num), false
 }
 
+// Int32 returns value as an int32.
+// NULL value is represented as 0.
+// Int32 method uses strconv.ParseInt to convert string into int32.
+// (see https://golang.org/pkg/strconv/#ParseInt)
 func (r *Rows) Int32() int32 {
 	num, _ := r.NullInt32()
 	return num
 }
 
+// NullInt32 returns value as an int32 and NULL indicator.
+// When value is NULL, second parameter is true.
+// NullInt32 method uses strconv.ParseInt to convert string into int32.
+// (see https://golang.org/pkg/strconv/#ParseInt)
 func (r *Rows) NullInt32() (int32, bool) {
 	str, null := r.NullString()
 	if null {
@@ -166,11 +206,19 @@ func (r *Rows) NullInt32() (int32, bool) {
 	return int32(num), false
 }
 
+// Int64 returns value as an int64.
+// NULL value is represented as 0.
+// Int64 method uses strconv.ParseInt to convert string into int64.
+// (see https://golang.org/pkg/strconv/#ParseInt)
 func (r *Rows) Int64() int64 {
 	num, _ := r.NullInt64()
 	return num
 }
 
+// NullInt64 returns value as an int64 and NULL indicator.
+// When value is NULL, second parameter is true.
+// NullInt64 method uses strconv.ParseInt to convert string into int64.
+// (see https://golang.org/pkg/strconv/#ParseInt)
 func (r *Rows) NullInt64() (int64, bool) {
 	str, null := r.NullString()
 	if null {
@@ -185,11 +233,19 @@ func (r *Rows) NullInt64() (int64, bool) {
 	return int64(num), false
 }
 
+// Float32 returns value as an float32.
+// NULL value is represented as 0.0.
+// Float32 method uses strconv.ParseFloat to convert string into float32.
+// (see https://golang.org/pkg/strconv/#ParseFloat)
 func (r *Rows) Float32() float32 {
 	num, _ := r.NullFloat32()
 	return num
 }
 
+// NullFloat32 returns value as an float32 and NULL indicator.
+// When value is NULL, second parameter is true.
+// NullFloat32 method uses strconv.ParseFloat to convert string into float32.
+// (see https://golang.org/pkg/strconv/#ParseFloat)
 func (r *Rows) NullFloat32() (float32, bool) {
 	str, null := r.NullString()
 	if null {
@@ -204,11 +260,19 @@ func (r *Rows) NullFloat32() (float32, bool) {
 	return float32(num), false
 }
 
+// Float64 returns value as an float64.
+// NULL value is represented as 0.0.
+// Float64 method uses strconv.ParseFloat to convert string into float64.
+// (see https://golang.org/pkg/strconv/#ParseFloat)
 func (r *Rows) Float64() float64 {
 	num, _ := r.NullFloat64()
 	return num
 }
 
+// NullFloat64 returns value as an float64 and NULL indicator.
+// When value is NULL, second parameter is true.
+// NullFloat64 method uses strconv.ParseFloat to convert string into float64.
+// (see https://golang.org/pkg/strconv/#ParseFloat)
 func (r *Rows) NullFloat64() (float64, bool) {
 	str, null := r.NullString()
 	if null {
@@ -223,11 +287,19 @@ func (r *Rows) NullFloat64() (float64, bool) {
 	return num, false
 }
 
+// Bool returns value as an bool.
+// NULL value is represented as false.
+// Bool method uses strconv.ParseBool to convert string into bool.
+// (see https://golang.org/pkg/strconv/#ParseBool)
 func (r *Rows) Bool() bool {
 	b, _ := r.NullBool()
 	return b
 }
 
+// NullBool returns value as an bool and NULL indicator.
+// When value is NULL, second parameter is true.
+// NullBool method uses strconv.ParseBool to convert string into bool.
+// (see https://golang.org/pkg/strconv/#ParseBool)
 func (r *Rows) NullBool() (bool, bool) {
 	str, null := r.NullString()
 	if null {
