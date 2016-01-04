@@ -233,7 +233,7 @@ func (r *Rows) NullInt64() (int64, bool) {
 	return int64(num), false
 }
 
-// Float32 returns value as an float32.
+// Float32 returns value as a float32.
 // NULL value is represented as 0.0.
 // Float32 method uses strconv.ParseFloat to convert string into float32.
 // (see https://golang.org/pkg/strconv/#ParseFloat)
@@ -242,7 +242,7 @@ func (r *Rows) Float32() float32 {
 	return num
 }
 
-// NullFloat32 returns value as an float32 and NULL indicator.
+// NullFloat32 returns value as a float32 and NULL indicator.
 // When value is NULL, second parameter is true.
 // NullFloat32 method uses strconv.ParseFloat to convert string into float32.
 // (see https://golang.org/pkg/strconv/#ParseFloat)
@@ -260,7 +260,7 @@ func (r *Rows) NullFloat32() (float32, bool) {
 	return float32(num), false
 }
 
-// Float64 returns value as an float64.
+// Float64 returns value as a float64.
 // NULL value is represented as 0.0.
 // Float64 method uses strconv.ParseFloat to convert string into float64.
 // (see https://golang.org/pkg/strconv/#ParseFloat)
@@ -269,7 +269,7 @@ func (r *Rows) Float64() float64 {
 	return num
 }
 
-// NullFloat64 returns value as an float64 and NULL indicator.
+// NullFloat64 returns value as a float64 and NULL indicator.
 // When value is NULL, second parameter is true.
 // NullFloat64 method uses strconv.ParseFloat to convert string into float64.
 // (see https://golang.org/pkg/strconv/#ParseFloat)
@@ -287,7 +287,7 @@ func (r *Rows) NullFloat64() (float64, bool) {
 	return num, false
 }
 
-// Bool returns value as an bool.
+// Bool returns value as a bool.
 // NULL value is represented as false.
 // Bool method uses strconv.ParseBool to convert string into bool.
 // (see https://golang.org/pkg/strconv/#ParseBool)
@@ -296,7 +296,7 @@ func (r *Rows) Bool() bool {
 	return b
 }
 
-// NullBool returns value as an bool and NULL indicator.
+// NullBool returns value as a bool and NULL indicator.
 // When value is NULL, second parameter is true.
 // NullBool method uses strconv.ParseBool to convert string into bool.
 // (see https://golang.org/pkg/strconv/#ParseBool)
