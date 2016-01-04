@@ -19,5 +19,27 @@ when it's not needed for further reuse.
  		// perform queries
  	}()
  }
+
+Reading rows
+
+mysqldriver reads data from the DB in a sequential order
+which means the whole result set of first query must be read
+before executing another one.
+
+Number of read column's values and their types must match
+with the number of columns in a query.
+
+ rows, err := conn.Query("SELECT id, name, married FROM people")
+ if err != nil {
+ 	// handle error
+ }
+ for rows.Next() { // always read all rows
+ 	id := rows.Int()       // order of columns must be preserved
+ 	name := rows.String()  // type of the column must match with DB type
+ 	married := rows.Bool() // all column's values must be read
+ }
+ if err = rows.LastError(); err != nil {
+ 	// handle error if any occurred during reading packets from DB
+ }
 */
 package mysqldriver
