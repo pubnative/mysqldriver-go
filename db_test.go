@@ -30,7 +30,8 @@ func TestDBGetConnReturnsConnectionFromThePool(t *testing.T) {
 
 func TestDBGetConnReturnsErrorWhenDBIsClosed(t *testing.T) {
 	db := NewDB("root@tcp(127.0.0.1:3306)/test", 2)
-	db.Close()
+	errors := db.Close()
+	assert.Nil(t, errors)
 	_, err := db.GetConn()
 	assert.Equal(t, err, ErrClosedDB)
 }
@@ -59,7 +60,8 @@ func TestDBPutConnAddsUpTpPoolSize(t *testing.T) {
 
 func TestDBPutConnClosesConnectionWhenDBIsClosed(t *testing.T) {
 	db := NewDB("root@tcp(127.0.0.1:3306)/test", 2)
-	db.Close()
+	errors := db.Close()
+	assert.Nil(t, errors)
 
 	s := &stream{}
 	conn := Conn{mysqlproto.Conn{mysqlproto.NewStream(s), 0}}
@@ -79,7 +81,8 @@ func TestDBCloseClosesAllConnections(t *testing.T) {
 	assert.Len(t, db.conns, 2)
 	assert.False(t, s1.closed)
 	assert.False(t, s2.closed)
-	db.Close()
+	errors := db.Close()
+	assert.Nil(t, errors)
 	assert.True(t, s1.closed)
 	assert.True(t, s2.closed)
 	_, more := <-db.conns

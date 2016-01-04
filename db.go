@@ -73,19 +73,23 @@ func (db *DB) PutConn(conn Conn) (err error) {
 	return
 }
 
-// Close closes all connections in a pool
-// and doesn't allow to establish new ones
-// to DB any more
-func (db *DB) Close() {
+// Close closes all connections in a pool and
+// doesn't allow to establish new ones to DB any more.
+// Returns slice of errors if any occurred.
+func (db *DB) Close() []error {
 	close(db.conns)
+	var errors []error
 	for {
 		conn, more := <-db.conns
 		if more {
-			conn.Close()
+			if err := conn.Close(); err != nil {
+				errors = append(errors, err)
+			}
 		} else {
 			break
 		}
 	}
+	return errors
 }
 
 func (db *DB) dial() (Conn, error) {

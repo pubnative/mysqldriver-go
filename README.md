@@ -119,6 +119,10 @@ func main() {
 		panic(err)
 	}
 
-	db.Close() // close the pool and all connections in it
+	if errors := db.Close(); errors != nil { // close the pool and all connections in it
+	    for _, err := range errors {
+	        _ = err // handle error
+        }
+	}
 }
 ```
