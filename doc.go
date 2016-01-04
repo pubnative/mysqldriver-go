@@ -1,5 +1,5 @@
 /*
-Package mysqldriver is a driver for MySQL database
+Package mysqldriver is a GC optimized MySQL driver
 
 Concurrency
 
