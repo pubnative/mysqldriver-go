@@ -12,14 +12,14 @@
 - [Quick Start](#quick-start)
 
 ## Motivation
-There are many MySQL drivers which implement the [database/sql](https://golang.org/pkg/database/sql/) interface.
-However, using this generic interface, especialy the [`Scan`](https://golang.org/pkg/database/sql/#Row.Scan) method, requires storing many objects in the heap. 
+There are many MySQL drivers that implement the [database/sql](https://golang.org/pkg/database/sql/) interface.
+However, using this generic interface, especialy in the [`Scan`](https://golang.org/pkg/database/sql/#Row.Scan) method, requires the storage of many objects in the heap. 
 
-Reading a massive number of records from a DB can significantly increase the GC pause-time which can be very sensitive for high-throughput, low-latency applications. 
+Reading a massive number of records from a DB can significantly increase the Garbage Collection (GC) pause-time that can be very sensitive for high-throughput, low-latency applications. 
 
-Because of the above and the need for a GC-friendly MySQL driver, we've decided and not to follow the [database/sql](https://golang.org/pkg/database/sql/) interface and write this driver.
+Because of the above and the need for a GC-friendly MySQL driver, we've decided not to follow the [database/sql](https://golang.org/pkg/database/sql/) interface and write this driver.
 
-The following [Benchmark](https://github.com/pubnative/mysqldriver-go/blob/master/benchmarks/main.go) was ran on a `MacBook Pro (Retina, 13-inch, Late 2013), 2.8 GHz Intel Core i7, 16 GB 1600 MHz DDR3` using `Go 1.5.2`:
+The following [Benchmark](https://github.com/pubnative/mysqldriver-go/blob/master/benchmarks/main.go) was run on a `MacBook Pro (Retina, 13-inch, Late 2013), 2.8 GHz Intel Core i7, 16 GB 1600 MHz DDR3` using `Go 1.5.2`:
 
 [![comparison](https://cloud.githubusercontent.com/assets/296795/12080839/72fcf55c-b268-11e5-9632-743ec07c2b80.png)](https://jsfiddle.net/zs83oze6/3/)
 ```zsh
