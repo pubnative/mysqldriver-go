@@ -1,6 +1,7 @@
 package mysqldriver
 
 import (
+	"io"
 	"testing"
 
 	"github.com/pubnative/mysqlproto-go"
@@ -145,7 +146,7 @@ func TestParseDataSourceWithoutDatabase(t *testing.T) {
 type stream struct{ closed bool }
 
 func (s *stream) Write([]byte) (int, error) { return 0, nil }
-func (s *stream) Read([]byte) (int, error)  { return 0, nil }
+func (s *stream) Read([]byte) (int, error)  { return 0, io.EOF }
 func (s *stream) Close() error              { s.closed = true; return nil }
 
 // Initializes the pool for 10 connections
