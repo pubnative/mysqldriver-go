@@ -13,6 +13,7 @@ var capabilityFlags = mysqlproto.CLIENT_LONG_PASSWORD |
 	mysqlproto.CLIENT_PLUGIN_AUTH |
 	mysqlproto.CLIENT_TRANSACTIONS |
 	mysqlproto.CLIENT_PROTOCOL_41 |
+	mysqlproto.CLIENT_SECURE_CONNECTION |
 	mysqlproto.CLIENT_SESSION_TRACK
 
 // Conn represents connection to MySQL server
