@@ -19,7 +19,7 @@ Reading a massive number of records from a DB can significantly increase the GC 
 
 Because of the above and the need for a GC-friendly MySQL driver, we've decided and not to follow the [database/sql](https://golang.org/pkg/database/sql/) interface and write this driver.
 
-The following [Benchmark](https://github.com/pubnative/mysqldriver-go/blob/master/benchmarks/main.go) was ran on a `MacBook Pro (Retina, 13-inch, Late 2013), 2.8 GHz Intel Core i7, 16 GB 1600 MHz DDR3`:
+The following [Benchmark](https://github.com/pubnative/mysqldriver-go/blob/master/benchmarks/main.go) was ran on a `MacBook Pro (Retina, 13-inch, Late 2013), 2.8 GHz Intel Core i7, 16 GB 1600 MHz DDR3` using `Go 1.5.2`:
 
 [![comparison](https://cloud.githubusercontent.com/assets/296795/12080839/72fcf55c-b268-11e5-9632-743ec07c2b80.png)](https://jsfiddle.net/zs83oze6/3/)
 ```zsh
