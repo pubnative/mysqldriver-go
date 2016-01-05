@@ -332,14 +332,18 @@ func (r *Rows) LastError() error {
 
 // Query function is used only for SELECT query.
 // For all other queries and commands see func (c Conn) Exec
-func (c Conn) Query(sql string) (*Rows, error) {
+func (c *Conn) Query(sql string) (*Rows, error) {
 	req := mysqlproto.ComQueryRequest([]byte(sql))
 	if _, err := c.conn.Write(req); err != nil {
+		c.valid = false
 		return nil, err
 	}
 
 	resultSet, err := mysqlproto.ComQueryResponse(c.conn)
 	if err != nil {
+		if _, ok := err.(mysqlproto.ERRPacket); !ok {
+			c.valid = false
+		}
 		return nil, err
 	}
 
@@ -357,14 +361,16 @@ func (c Conn) Query(sql string) (*Rows, error) {
 //  } else {
 //  	return err // generic error
 //  }
-func (c Conn) Exec(sql string) (mysqlproto.OKPacket, error) {
+func (c *Conn) Exec(sql string) (mysqlproto.OKPacket, error) {
 	req := mysqlproto.ComQueryRequest([]byte(sql))
 	if _, err := c.conn.Write(req); err != nil {
+		c.valid = false
 		return mysqlproto.OKPacket{}, err
 	}
 
 	packet, err := c.conn.NextPacket()
 	if err != nil {
+		c.valid = false
 		return mysqlproto.OKPacket{}, err
 	}
 

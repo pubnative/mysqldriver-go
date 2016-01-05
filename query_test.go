@@ -9,9 +9,10 @@ import (
 )
 
 func TestQueryError(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		_, err := conn.Query("SELECT * FROM unknown_table")
 		assert.NotNil(t, err)
+		assert.True(t, conn.valid)
 		pkt, ok := err.(mysqlproto.ERRPacket)
 		assert.True(t, ok)
 		assert.True(t, ok)
@@ -24,12 +25,13 @@ func TestQueryError(t *testing.T) {
 }
 
 func TestQuerySelectValues(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		_, err := conn.Exec(`
 			INSERT INTO people(firstname,lastname,cars,houses,cats,dogs,age,married,grade,score)
 			VALUES("bob","ben",2,8,16,32,64,1,4.5,3.7)
 		`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 
 		rows, err := conn.Query("SELECT * FROM people")
 		assert.Nil(t, err)
@@ -50,12 +52,13 @@ func TestQuerySelectValues(t *testing.T) {
 }
 
 func TestQuerySelectValuesWithNULL(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		_, err := conn.Exec(`
 			INSERT INTO people(firstname,lastname,cars,houses,cats,dogs,age,married,grade,score)
 			VALUES("bob","ben",2,8,16,32,64,1,4.5,3.7)
 		`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 
 		rows, err := conn.Query("SELECT * FROM people")
 		assert.Nil(t, err)
@@ -96,12 +99,13 @@ func TestQuerySelectValuesWithNULL(t *testing.T) {
 }
 
 func TestQuerySelectNULLValues(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		_, err := conn.Exec(`
 			INSERT INTO people(firstname,lastname,cars,houses,cats,dogs,age,married,grade,score)
 			VALUES(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)
 		`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 
 		rows, err := conn.Query("SELECT * FROM people")
 		assert.Nil(t, err)
@@ -141,10 +145,22 @@ func TestQuerySelectNULLValues(t *testing.T) {
 	})
 }
 
+func TestQueryMarkConnInvalidWhenStreamIsBroken(t *testing.T) {
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+	conn, err := db.GetConn()
+	assert.Nil(t, err)
+
+	assert.Nil(t, conn.Close())
+	_, err = conn.Query(`SELECT * FROM people`)
+	assert.NotNil(t, err)
+	assert.False(t, conn.valid)
+}
+
 func TestExecInsertSuccess(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		pkt, err := conn.Exec(`INSERT INTO people(firstname) VALUES("bob")`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 		assert.Equal(t, pkt.Header, mysqlproto.OK_PACKET)
 		assert.Equal(t, pkt.AffectedRows, uint64(1))
 		assert.Equal(t, pkt.LastInsertID, uint64(1))
@@ -153,6 +169,7 @@ func TestExecInsertSuccess(t *testing.T) {
 
 		rows, err := conn.Query("SELECT firstname FROM people WHERE id = " + strconv.Itoa(int(pkt.LastInsertID)))
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 		assert.True(t, rows.Next())
 		assert.Equal(t, rows.String(), "bob")
 		assert.False(t, rows.Next())
@@ -160,9 +177,10 @@ func TestExecInsertSuccess(t *testing.T) {
 }
 
 func TestExecInsertError(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		_, err := conn.Exec(`INSERT INTO people(firstname)`)
 		assert.NotNil(t, err)
+		assert.True(t, conn.valid)
 		pkt, ok := err.(mysqlproto.ERRPacket)
 		assert.True(t, ok)
 		assert.Equal(t, pkt.Header, mysqlproto.ERR_PACKET)
@@ -174,12 +192,14 @@ func TestExecInsertError(t *testing.T) {
 }
 
 func TestExecDeleteSuccess(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		_, err := conn.Exec(`INSERT INTO people(firstname) VALUES("bob")`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 
 		pkt, err := conn.Exec(`DELETE FROM people WHERE firstname = "bob"`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 		assert.Equal(t, pkt.Header, mysqlproto.OK_PACKET)
 		assert.Equal(t, pkt.AffectedRows, uint64(1))
 		assert.Equal(t, pkt.LastInsertID, uint64(0))
@@ -189,12 +209,14 @@ func TestExecDeleteSuccess(t *testing.T) {
 }
 
 func TestExecDeleteNotFound(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		_, err := conn.Exec(`INSERT INTO people(firstname) VALUES("bob")`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 
 		pkt, err := conn.Exec(`DELETE FROM people WHERE firstname = "ben"`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 		assert.Equal(t, pkt.Header, mysqlproto.OK_PACKET)
 		assert.Equal(t, pkt.AffectedRows, uint64(0))
 		assert.Equal(t, pkt.LastInsertID, uint64(0))
@@ -204,7 +226,7 @@ func TestExecDeleteNotFound(t *testing.T) {
 }
 
 func TestExecUpdateSuccess(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		_, err := conn.Exec(`INSERT INTO people(firstname) VALUES("bob")`)
 		assert.Nil(t, err)
 		_, err = conn.Exec(`INSERT INTO people(firstname) VALUES("bin")`)
@@ -212,6 +234,7 @@ func TestExecUpdateSuccess(t *testing.T) {
 
 		pkt, err := conn.Exec(`UPDATE people SET firstname = "ben" WHERE firstname = "bob"`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 		assert.Equal(t, pkt.Header, mysqlproto.OK_PACKET)
 		assert.Equal(t, pkt.AffectedRows, uint64(1))
 		assert.Equal(t, pkt.LastInsertID, uint64(0))
@@ -219,6 +242,8 @@ func TestExecUpdateSuccess(t *testing.T) {
 		assert.Equal(t, pkt.Info, "Rows matched: 1  Changed: 1  Warnings: 0")
 
 		rows, err := conn.Query("SELECT firstname FROM people ORDER BY id")
+		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 		assert.True(t, rows.Next())
 		assert.Equal(t, rows.String(), "ben")
 		assert.True(t, rows.Next())
@@ -228,12 +253,13 @@ func TestExecUpdateSuccess(t *testing.T) {
 }
 
 func TestExecUpdateNotFound(t *testing.T) {
-	setup(t, func(conn Conn) {
+	setup(t, func(conn *Conn) {
 		_, err := conn.Exec(`INSERT INTO people(firstname) VALUES("bob")`)
 		assert.Nil(t, err)
 
 		pkt, err := conn.Exec(`UPDATE people SET firstname = "ben" WHERE firstname = "bin"`)
 		assert.Nil(t, err)
+		assert.True(t, conn.valid)
 		assert.Equal(t, pkt.Header, mysqlproto.OK_PACKET)
 		assert.Equal(t, pkt.AffectedRows, uint64(0))
 		assert.Equal(t, pkt.LastInsertID, uint64(0))
@@ -242,7 +268,18 @@ func TestExecUpdateNotFound(t *testing.T) {
 	})
 }
 
-func setup(t *testing.T, fn func(conn Conn)) {
+func TestExecMarkConnInvalidWhenStreamIsBroken(t *testing.T) {
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+	conn, err := db.GetConn()
+	assert.Nil(t, err)
+
+	assert.Nil(t, conn.Close())
+	_, err = conn.Exec(`INSERT INTO people(firstname) VALUES("bob")`)
+	assert.NotNil(t, err)
+	assert.False(t, conn.valid)
+}
+
+func setup(t *testing.T, fn func(conn *Conn)) {
 	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
 	conn, err := db.GetConn()
 	assert.Nil(t, err)
@@ -296,6 +333,10 @@ func ExampleConn_Query_default() {
 	}
 	if err = rows.LastError(); err != nil {
 		// handle error
+
+		// when error occurred during reading from the stream
+		// connection must be manually closed to prevent further reuse
+		conn.Close()
 	}
 }
 
@@ -323,5 +364,9 @@ func ExampleConn_Query_null() {
 	}
 	if err = rows.LastError(); err != nil {
 		// handle error
+
+		// when error occurred during reading from the stream
+		// connection must be manually closed to prevent further reuse
+		conn.Close()
 	}
 }

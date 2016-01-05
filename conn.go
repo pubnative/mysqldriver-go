@@ -18,7 +18,9 @@ var capabilityFlags = mysqlproto.CLIENT_LONG_PASSWORD |
 
 // Conn represents connection to MySQL server
 type Conn struct {
-	conn mysqlproto.Conn
+	conn   mysqlproto.Conn
+	valid  bool
+	closed bool
 }
 
 // Contains connection statistics
@@ -28,10 +30,10 @@ type Stats struct {
 
 // NewConn establishes connection to the DB. After obtaining the connection,
 // it sends "SET NAMES utf8" command to the DB
-func NewConn(username, password, protocol, address, database string) (Conn, error) {
+func NewConn(username, password, protocol, address, database string) (*Conn, error) {
 	conn, err := net.Dial(protocol, address)
 	if err != nil {
-		return Conn{}, err
+		return nil, err
 	}
 
 	stream, err := mysqlproto.ConnectPlainHandshake(
@@ -40,23 +42,27 @@ func NewConn(username, password, protocol, address, database string) (Conn, erro
 	)
 
 	if err != nil {
-		return Conn{}, err
+		return &Conn{conn: stream, valid: false, closed: false}, err
 	}
 
 	if err = setUTF8Charset(stream); err != nil {
-		return Conn{}, err
+		return &Conn{conn: stream, valid: false, closed: false}, err
 	}
 
-	return Conn{stream}, nil
+	return &Conn{conn: stream, valid: true, closed: false}, nil
 }
 
 // Close closes the connection
-func (c Conn) Close() error {
-	return c.conn.Close()
+func (c *Conn) Close() error {
+	if !c.closed {
+		c.closed = true
+		return c.conn.Close()
+	}
+	return nil
 }
 
 // Returns statistics about the connection
-func (c Conn) Stats() Stats {
+func (c *Conn) Stats() Stats {
 	return Stats{
 		Syscalls: c.conn.Syscalls(),
 	}

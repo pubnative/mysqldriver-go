@@ -44,7 +44,7 @@ func TestDBPutConnAddsConnectionToThePool(t *testing.T) {
 	assert.Len(t, db.conns, 1)
 }
 
-func TestDBPutConnAddsUpTpPoolSize(t *testing.T) {
+func TestDBPutConnAddsUpToPoolSize(t *testing.T) {
 	db := NewDB("root@tcp(127.0.0.1:3306)/test", 2)
 	conn1, _ := db.GetConn()
 	conn2, _ := db.GetConn()
@@ -58,24 +58,47 @@ func TestDBPutConnAddsUpTpPoolSize(t *testing.T) {
 	assert.Len(t, db.conns, 2)
 }
 
+func TestDBPutConnClosesConnectionWhenItIsInvalid(t *testing.T) {
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 2)
+	errors := db.Close()
+	assert.Nil(t, errors)
+
+	s := &stream{}
+	conn := &Conn{mysqlproto.Conn{mysqlproto.NewStream(s), 0}, false, false}
+	db.PutConn(conn)
+	assert.True(t, s.closed)
+	assert.Len(t, db.conns, 0)
+}
+
+func TestDBPutConnDiscardsConnectionWhenItIsClosedAlready(t *testing.T) {
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 2)
+	errors := db.Close()
+	assert.Nil(t, errors)
+
+	conn := &Conn{conn: mysqlproto.Conn{nil, 0}, valid: true, closed: true}
+	assert.Nil(t, db.PutConn(conn))
+	assert.Len(t, db.conns, 0)
+}
+
 func TestDBPutConnClosesConnectionWhenDBIsClosed(t *testing.T) {
 	db := NewDB("root@tcp(127.0.0.1:3306)/test", 2)
 	errors := db.Close()
 	assert.Nil(t, errors)
 
 	s := &stream{}
-	conn := Conn{mysqlproto.Conn{mysqlproto.NewStream(s), 0}}
+	conn := &Conn{mysqlproto.Conn{mysqlproto.NewStream(s), 0}, true, false}
 	db.PutConn(conn)
 	assert.True(t, s.closed)
+	assert.Len(t, db.conns, 0)
 }
 
 func TestDBCloseClosesAllConnections(t *testing.T) {
 	db := NewDB("root@tcp(127.0.0.1:3306)/test", 2)
 	s1 := &stream{}
-	conn1 := Conn{mysqlproto.Conn{mysqlproto.NewStream(s1), 0}}
+	conn1 := &Conn{mysqlproto.Conn{mysqlproto.NewStream(s1), 0}, true, false}
 	db.PutConn(conn1)
 	s2 := &stream{}
-	conn2 := Conn{mysqlproto.Conn{mysqlproto.NewStream(s2), 0}}
+	conn2 := &Conn{mysqlproto.Conn{mysqlproto.NewStream(s2), 0}, true, false}
 	db.PutConn(conn2)
 
 	assert.Len(t, db.conns, 2)

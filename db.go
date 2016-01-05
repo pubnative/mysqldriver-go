@@ -9,7 +9,7 @@ var ErrClosedDB = errors.New("mysqldriver: can't get connection from the closed 
 
 // DB manages pool of connection
 type DB struct {
-	conns    chan Conn
+	conns    chan *Conn
 	username string
 	password string
 	protocol string
@@ -25,7 +25,7 @@ type DB struct {
 // [username[:password]@][protocol[(address)]]/dbname
 func NewDB(dataSource string, pool int) *DB {
 	usr, pass, proto, addr, dbname := parseDataSource(dataSource)
-	conns := make(chan Conn, pool)
+	conns := make(chan *Conn, pool)
 	return &DB{
 		conns:    conns,
 		username: usr,
@@ -40,11 +40,11 @@ func NewDB(dataSource string, pool int) *DB {
 // establishes a new one.This method always returns the connection
 // regardless the pool size. When DB is closed, this method
 // returns ErrClosedDB error.
-func (db *DB) GetConn() (Conn, error) {
+func (db *DB) GetConn() (*Conn, error) {
 	select {
 	case conn, more := <-db.conns:
 		if !more {
-			return Conn{}, ErrClosedDB
+			return nil, ErrClosedDB
 		}
 		return conn, nil
 	default:
@@ -52,15 +52,26 @@ func (db *DB) GetConn() (Conn, error) {
 	}
 }
 
-// PutConn returns connection to the pool.
-// When pool is reached, connection is closed.
-func (db *DB) PutConn(conn Conn) (err error) {
+// PutConn returns connection to the pool. When pool is reached,
+// connection is closed and won't be further reused.
+// If connection is already closed, PutConn will discard it
+// so it's safe to return closed connection to the pool.
+func (db *DB) PutConn(conn *Conn) (err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = conn.Close()
 			return
 		}
 	}()
+
+	if !conn.valid {
+		// broken connection shouldn't be in a pool
+		return conn.Close()
+	}
+
+	if conn.closed {
+		return nil
+	}
 
 	conn.conn.ResetStats()
 
@@ -92,7 +103,7 @@ func (db *DB) Close() []error {
 	return errors
 }
 
-func (db *DB) dial() (Conn, error) {
+func (db *DB) dial() (*Conn, error) {
 	return NewConn(db.username, db.password, db.protocol, db.address, db.database)
 }
 

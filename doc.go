@@ -39,7 +39,39 @@ with the number of columns in a query.
  	married := rows.Bool() // all column's values must be read
  }
  if err = rows.LastError(); err != nil {
- 	// handle error if any occurred during reading packets from DB
+ 	// Handle error if any occurred during reading packets from DB.
+
+ 	// When error occurred during reading from the stream
+  	// connection must be manually closed to prevent further reuse.
+  	conn.Close()
+ }
+
+When there is no need to read the whole result set, for instance
+when error occurred during parsing data, connection must be closed
+to prevent further reuse as it's in invalid state.
+
+ conn, err := db.GetConn()
+ if err != nil {
+ 	// handle error
+ }
+
+ // It's safe to return closed connection to the pool.
+ // It will be discarded and won't be reused.
+ defer db.PutConn(conn)
+
+ rows, err := db.Query("SELECT name FROM people")
+ if err != nil {
+ 	// handle error
+ }
+
+ for rows.Next() {
+ 	rows.Int() // causes type error
+ }
+
+ if err = rows.LastError(); err != nil {
+ 	// Close the connection to make sure
+ 	// it won't be reused by the pool.
+ 	conn.Close()
  }
 */
 package mysqldriver
