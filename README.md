@@ -35,7 +35,7 @@ go-sql-driver: records read 10000  HEAP 30010  time 3.377241ms
 ## Goal
 The main goals of this library are: *performance* over flexibility, *simplicity* over complexity. Any new feature shouldn't decrease the performance of the exising code base. 
 
-Any improvements to productivity are always welcome. There is no plan to convert this library into an ORM. The plan is to keep it simple, and still keep supporting all of the MySQL features.
+Any improvements to productivity are always welcome. There is no plan to convert this library into an ORM. The plan is to keep it simple and, still keep supporting all of the MySQL features.
 
 ## Documentation
 1. [API Reference](https://godoc.org/github.com/pubnative/mysqldriver-go)
