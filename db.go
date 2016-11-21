@@ -9,6 +9,8 @@ var ErrClosedDB = errors.New("mysqldriver: can't get connection from the closed 
 
 // DB manages pool of connection
 type DB struct {
+	OnDial func(conn *Conn) error // called when new connection is established
+
 	conns    chan *Conn
 	username string
 	password string
@@ -104,7 +106,14 @@ func (db *DB) Close() []error {
 }
 
 func (db *DB) dial() (*Conn, error) {
-	return NewConn(db.username, db.password, db.protocol, db.address, db.database)
+	conn, err := NewConn(db.username, db.password, db.protocol, db.address, db.database)
+	if err != nil {
+		return conn, err
+	}
+	if db.OnDial != nil {
+		err = db.OnDial(conn)
+	}
+	return conn, err
 }
 
 func parseDataSource(dataSource string) (username, password, protocol, address, database string) {
