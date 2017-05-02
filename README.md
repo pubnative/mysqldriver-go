@@ -13,7 +13,7 @@
 
 ## Motivation
 There are many MySQL drivers that implement the [database/sql](https://golang.org/pkg/database/sql/) interface.
-However, using this generic interface, especialy in the [`Scan`](https://golang.org/pkg/database/sql/#Row.Scan) method, requires the storage of many objects in the heap. 
+However, using this generic interface, especially in the [`Scan`](https://golang.org/pkg/database/sql/#Row.Scan) method, requires the storage of many objects in the heap.
 
 Reading a massive number of records from a DB can significantly increase the Garbage Collection (GC) pause-time that can be very sensitive for high-throughput, low-latency applications. 
 
@@ -33,7 +33,7 @@ go-sql-driver: records read 10000  HEAP 30010  time 3.377241ms
 ```
 
 ## Goal
-The main goals of this library are: *performance* over flexibility, *simplicity* over complexity. Any new feature shouldn't decrease the performance of the exising code base. 
+The main goals of this library are: *performance* over flexibility, *simplicity* over complexity. Any new feature shouldn't decrease the performance of the existing code base.
 
 Any improvements to productivity are always welcome. There is no plan to convert this library into an ORM. The plan is to keep it simple and, still keep supporting all of the MySQL features.
 

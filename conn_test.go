@@ -1,9 +1,10 @@
 package mysqldriver
 
 import (
-	"github.com/pubnative/mysqlproto-go"
+	"context"
 	"testing"
 
+	"github.com/pubnative/mysqlproto-go"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,6 +23,20 @@ func TestNewConnError(t *testing.T) {
 	assert.Equal(t, errPkt.SQLState, "42000")
 	assert.Equal(t, errPkt.ErrorMessage, "Unknown database 'unknown'")
 	assert.False(t, conn.valid)
+}
+
+func TestNewConnContextSuccess(t *testing.T) {
+	conn, err := NewConnContext(context.Background(), "root", "", "tcp", "127.0.0.1:3306", "test")
+	assert.NoError(t, err)
+	assert.True(t, conn.valid)
+}
+
+func TestNewConnContextCanceled(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := NewConnContext(ctx, "root", "", "tcp", "127.0.0.1:3306", "test")
+	assert.EqualError(t, err, "dial tcp 127.0.0.1:3306: operation was canceled")
 }
 
 func TestConnClose(t *testing.T) {
