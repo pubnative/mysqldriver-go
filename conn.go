@@ -1,6 +1,7 @@
 package mysqldriver
 
 import (
+	"context"
 	"net"
 
 	"github.com/pubnative/mysqlproto-go"
@@ -28,10 +29,19 @@ type Stats struct {
 	Syscalls int // number of system calls performed to read all packets
 }
 
-// NewConn establishes connection to the DB. After obtaining the connection,
+// NewConn establishes a connection to the DB. After obtaining the connection,
 // it sends "SET NAMES utf8" command to the DB
 func NewConn(username, password, protocol, address, database string) (*Conn, error) {
-	conn, err := net.Dial(protocol, address)
+	return NewConnContext(context.Background(), username, password, protocol, address, database)
+}
+
+// NewConnContext establishes a connection to the DB. After obtaining the connection,
+// it sends "SET NAMES utf8" command to the DB
+//
+// Go Context is only used to establish a TCP connection.
+// TODO use Go Context to establish a MySQL connection.
+func NewConnContext(ctx context.Context, username, password, protocol, address, database string) (*Conn, error) {
+	conn, err := (&net.Dialer{}).DialContext(ctx, protocol, address)
 	if err != nil {
 		return nil, err
 	}
