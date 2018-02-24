@@ -12,7 +12,17 @@ type Rows struct {
 	packet    []byte
 	offset    uint64
 	eof       bool
-	err       error
+
+	errRead  error // error reading from the stream
+	errParse error // error parsing the value
+
+	columns     map[string]columnValue
+	readColumns int
+}
+
+type columnValue struct {
+	data []byte
+	null bool
 }
 
 // Next moves cursor to the next unread row.
@@ -48,14 +58,14 @@ func (r *Rows) Next() bool {
 		return false
 	}
 
-	if r.err != nil {
+	// stop execution if stream is broken
+	if r.errRead != nil {
 		return false
 	}
 
 	packet, err := r.resultSet.Row()
 	if err != nil {
-		r.err = err
-		r.eof = true
+		r.errRead = err
 		return false
 	}
 
@@ -65,6 +75,7 @@ func (r *Rows) Next() bool {
 	} else {
 		r.packet = packet
 		r.offset = 0
+		r.readColumns = 0
 		return true
 	}
 }
@@ -78,9 +89,25 @@ func (r *Rows) Bytes() []byte {
 
 // NullBytes returns value as a slice of bytes
 // and NULL indicator. When value is NULL, second parameter is true.
+// All other type-specific functions are based on this one.
+// NullBytes shouldn't be invoked after all columns are read.
+// Calling it after reading all values of the row
+// will return nil value with NULL flag
 func (r *Rows) NullBytes() ([]byte, bool) {
+	if r.readColumns == len(r.resultSet.Columns) {
+		return nil, true
+	}
+
 	value, offset, null := mysqlproto.ReadRowValue(r.packet, r.offset)
 	r.offset = offset
+
+	name := r.resultSet.Columns[r.readColumns].Name
+	r.columns[name] = columnValue{
+		data: value,
+		null: null,
+	}
+	r.readColumns += 1
+
 	return value, null
 }
 
@@ -119,7 +146,7 @@ func (r *Rows) NullInt() (int, bool) {
 
 	num, err := strconv.Atoi(str)
 	if err != nil {
-		r.err = err
+		r.errParse = err
 	}
 
 	return num, false
@@ -146,7 +173,7 @@ func (r *Rows) NullInt8() (int8, bool) {
 
 	num, err := strconv.ParseInt(str, 10, 8)
 	if err != nil {
-		r.err = err
+		r.errParse = err
 	}
 
 	return int8(num), false
@@ -173,7 +200,7 @@ func (r *Rows) NullInt16() (int16, bool) {
 
 	num, err := strconv.ParseInt(str, 10, 16)
 	if err != nil {
-		r.err = err
+		r.errParse = err
 	}
 
 	return int16(num), false
@@ -200,7 +227,7 @@ func (r *Rows) NullInt32() (int32, bool) {
 
 	num, err := strconv.ParseInt(str, 10, 32)
 	if err != nil {
-		r.err = err
+		r.errParse = err
 	}
 
 	return int32(num), false
@@ -227,7 +254,7 @@ func (r *Rows) NullInt64() (int64, bool) {
 
 	num, err := strconv.ParseInt(str, 10, 64)
 	if err != nil {
-		r.err = err
+		r.errParse = err
 	}
 
 	return int64(num), false
@@ -254,7 +281,7 @@ func (r *Rows) NullFloat32() (float32, bool) {
 
 	num, err := strconv.ParseFloat(str, 32)
 	if err != nil {
-		r.err = err
+		r.errParse = err
 	}
 
 	return float32(num), false
@@ -281,7 +308,7 @@ func (r *Rows) NullFloat64() (float64, bool) {
 
 	num, err := strconv.ParseFloat(str, 64)
 	if err != nil {
-		r.err = err
+		r.errParse = err
 	}
 
 	return num, false
@@ -308,7 +335,7 @@ func (r *Rows) NullBool() (bool, bool) {
 
 	b, err := strconv.ParseBool(str)
 	if err != nil {
-		r.err = err
+		r.errParse = err
 	}
 	return b, false
 }
@@ -327,7 +354,11 @@ func (r *Rows) NullBool() (bool, bool) {
 //  	// handle error
 //  }
 func (r *Rows) LastError() error {
-	return r.err
+	if r.errRead != nil {
+		return r.errRead
+	}
+
+	return r.errParse
 }
 
 // Query function is used only for SELECT query.
@@ -347,7 +378,11 @@ func (c *Conn) Query(sql string) (*Rows, error) {
 		return nil, err
 	}
 
-	return &Rows{resultSet: resultSet}, nil
+	rows := &Rows{
+		resultSet: resultSet,
+		columns:   make(map[string]columnValue, len(resultSet.Columns)),
+	}
+	return rows, nil
 }
 
 // Exec executes queries or other commands which expect to return OK_PACKET

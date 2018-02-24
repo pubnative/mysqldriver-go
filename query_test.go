@@ -47,6 +47,20 @@ func TestQuerySelectValues(t *testing.T) {
 		assert.Equal(t, rows.Bool(), true)
 		assert.Equal(t, rows.Float32(), float32(4.5))
 		assert.Equal(t, rows.Float64(), float64(3.7))
+		assert.NoError(t, rows.LastError())
+
+		// read non-exist columns
+		assert.Equal(t, rows.Int(), 0)
+		assert.Equal(t, rows.Int8(), int8(0))
+		assert.Equal(t, rows.Int16(), int16(0))
+		assert.Equal(t, rows.Int32(), int32(0))
+		assert.Equal(t, rows.Int64(), int64(0))
+		assert.Equal(t, rows.String(), "")
+		assert.Equal(t, rows.Bool(), false)
+		assert.Equal(t, rows.Float32(), float32(0.0))
+		assert.Equal(t, rows.Float64(), float64(0.0))
+		assert.NoError(t, rows.LastError())
+
 		assert.False(t, rows.Next())
 	})
 }
@@ -94,6 +108,20 @@ func TestQuerySelectValuesWithNULL(t *testing.T) {
 		score, null := rows.NullFloat64()
 		assert.Equal(t, score, float64(3.7))
 		assert.False(t, null)
+		assert.NoError(t, rows.LastError())
+
+		// read non-exist columns
+		assert.Equal(t, rows.Int(), 0)
+		assert.Equal(t, rows.Int8(), int8(0))
+		assert.Equal(t, rows.Int16(), int16(0))
+		assert.Equal(t, rows.Int32(), int32(0))
+		assert.Equal(t, rows.Int64(), int64(0))
+		assert.Equal(t, rows.String(), "")
+		assert.Equal(t, rows.Bool(), false)
+		assert.Equal(t, rows.Float32(), float32(0.0))
+		assert.Equal(t, rows.Float64(), float64(0.0))
+		assert.NoError(t, rows.LastError())
+
 		assert.False(t, rows.Next())
 	})
 }
@@ -141,6 +169,133 @@ func TestQuerySelectNULLValues(t *testing.T) {
 		score, null := rows.NullFloat64()
 		assert.Equal(t, score, float64(0))
 		assert.True(t, null)
+		assert.False(t, rows.Next())
+	})
+}
+
+func TestQueryRowReader(t *testing.T) {
+	setup(t, func(conn *Conn) {
+		_, err := conn.Exec(`
+			INSERT INTO people(firstname,lastname,cars,houses,cats,dogs,age,married,grade,score,note)
+			VALUES
+			("bob","ben",2,8,16,32,64,1,4.5,3.7,"good"),
+			("one","two",1,2,33,44,55,0,7.7,8.8,"best")
+		`)
+		assert.NoError(t, err)
+		assert.True(t, conn.valid)
+
+		_, err = conn.Exec(`
+			INSERT INTO categories(name)
+			VALUES ("books"),(NULL),("cars")
+		`)
+		assert.NoError(t, err)
+		assert.True(t, conn.valid)
+
+		rows, err := conn.Query(`
+			SELECT id, firstname as name, lastname as lastName,
+			p.cars, p.houses as houses, cats, dogs,
+			age, married, grade, score, note
+			FROM people as p
+		`)
+		assert.NoError(t, err)
+
+		// switch cursor to first row
+		assert.True(t, rows.Next())
+
+		// check sequential calls
+		row := rows.Row()
+		for i := 0; i < 2; i++ {
+			assert.Equal(t, row.Int("id"), 1)
+			assert.Equal(t, row.String("name"), "bob")
+			assert.Equal(t, row.String("lastName"), "ben")
+			assert.Equal(t, row.Int("cars"), 2)
+			assert.Equal(t, row.Int8("houses"), int8(8))
+			assert.Equal(t, row.Int16("cats"), int16(16))
+			assert.Equal(t, row.Int32("dogs"), int32(32))
+			assert.Equal(t, row.Int64("age"), int64(64))
+			assert.Equal(t, row.Bool("married"), true)
+			assert.Equal(t, row.Float32("grade"), float32(4.5))
+			assert.Equal(t, row.Float64("score"), float64(3.7))
+			assert.Equal(t, row.String("note"), "good")
+
+			row = rows.Row()
+		}
+		assert.Equal(t, row.String("id"), "1")
+		assert.Equal(t, row.String("cars"), "2")
+		assert.NoError(t, rows.LastError())
+
+		// switch cursor to the second row
+		assert.True(t, rows.Next())
+
+		row = rows.Row()
+		assert.Equal(t, row.Int("id"), 2)
+		assert.Equal(t, row.String("name"), "one")
+		assert.Equal(t, row.String("lastName"), "two")
+		assert.Equal(t, row.Int("cars"), 1)
+		assert.Equal(t, row.Int8("houses"), int8(2))
+		assert.Equal(t, row.Int16("cats"), int16(33))
+		assert.Equal(t, row.Int32("dogs"), int32(44))
+		assert.Equal(t, row.Int64("age"), int64(55))
+		assert.Equal(t, row.Bool("married"), false)
+		assert.Equal(t, row.Float32("grade"), float32(7.7))
+		assert.Equal(t, row.Float64("score"), float64(8.8))
+		assert.Equal(t, row.String("note"), "best")
+		assert.NoError(t, rows.LastError())
+
+		// close reading
+		assert.False(t, rows.Next())
+
+		rows, err = conn.Query(`SELECT id, cat.name FROM categories AS cat`)
+		assert.NoError(t, err)
+
+		assert.True(t, rows.Next())
+		row = rows.Row()
+		id, null := row.NullInt("id")
+		assert.False(t, null)
+		assert.Equal(t, id, 1)
+		name, null := row.NullString("name")
+		assert.False(t, null)
+		assert.Equal(t, name, "books")
+		assert.NoError(t, rows.LastError())
+
+		assert.True(t, rows.Next())
+		row = rows.Row()
+		id2, null := row.NullInt8("id")
+		assert.False(t, null)
+		assert.Equal(t, id2, int8(2))
+		name, null = row.NullString("name")
+		assert.True(t, null)
+		assert.Equal(t, name, "")
+		assert.NoError(t, rows.LastError())
+
+		assert.True(t, rows.Next())
+		row = rows.Row()
+		id3, null := row.NullInt16("id")
+		assert.False(t, null)
+		assert.Equal(t, id3, int16(3))
+		name, null = row.NullString("name")
+		assert.False(t, null)
+		assert.Equal(t, name, "cars")
+		func() {
+			defer func() {
+				err := recover()
+				assert.Equal(t, err, `mysqldriver: column "id2" doesn't exist. Available columns are: "id", "name"`)
+			}()
+			row.Int("id2")
+		}()
+		assert.NoError(t, rows.LastError())
+
+		assert.Equal(t, row.Int("name"), 0)
+		assert.EqualError(t, rows.LastError(), `strconv.Atoi: parsing "cars": invalid syntax`)
+
+		assert.False(t, rows.Next())
+
+		rows, err = conn.Query(`SELECT MAX(id), min(id) FROM categories AS cat`)
+		assert.NoError(t, err)
+		assert.True(t, rows.Next())
+		row = rows.Row()
+		assert.Equal(t, row.Int("MAX(id)"), 3)
+		assert.Equal(t, row.Int("min(id)"), 1)
 		assert.False(t, rows.Next())
 	})
 }
@@ -296,6 +451,14 @@ func setup(t *testing.T, fn func(conn *Conn)) {
 		married tinyint,
 		grade decimal(6,2),
 		score decimal(6,2),
+		note text,
+		PRIMARY KEY (id)
+	)`)
+	assert.Nil(t, err)
+
+	_, err = conn.Exec(`CREATE TABLE categories (
+		id int NOT NULL AUTO_INCREMENT,
+		name varchar(255),
 		PRIMARY KEY (id)
 	)`)
 	assert.Nil(t, err)
@@ -304,7 +467,7 @@ func setup(t *testing.T, fn func(conn *Conn)) {
 
 	defer func() {
 		assert.Nil(t, db.PutConn(conn))
-		_, err = conn.Exec(`DROP TABLE people`)
+		_, err = conn.Exec(`DROP TABLE people, categories`)
 		assert.Nil(t, err)
 	}()
 }
