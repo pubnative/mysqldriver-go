@@ -71,7 +71,7 @@ func (c *Conn) Close() error {
 	return nil
 }
 
-// Returns statistics about the connection
+// Stats returns statistics about the connection
 func (c *Conn) Stats() Stats {
 	return Stats{
 		Syscalls: c.conn.Syscalls(),
