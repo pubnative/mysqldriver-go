@@ -1,0 +1,9 @@
+tenets:
+  - import: codelingo/effective-go/update-comment-first-word-as-subject
+  - import: codelingo/effective-go/comment-first-word-when-empty
+  - import: codelingo/effective-go/underscores-in-name
+  - import: codelingo/go/tested
+  - import: codelingo/effective-go/package-comment
+  - import: codelingo/go/global-var
+  - import: codelingo/go/todo
+  - import: codelingo/lightning-network-daemon/exported-package-is-tested
