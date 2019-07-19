@@ -1,6 +1,7 @@
 package mysqldriver
 
 import (
+	"net"
 	"strconv"
 
 	"github.com/pubnative/mysqlproto-go"
@@ -373,6 +374,9 @@ func (c *Conn) Query(sql string) (*Rows, error) {
 	resultSet, err := mysqlproto.ComQueryResponse(c.conn)
 	if err != nil {
 		if _, ok := err.(mysqlproto.ERRPacket); !ok {
+			c.valid = false
+		}
+		if err, ok := err.(net.Error); ok && err.Timeout() {
 			c.valid = false
 		}
 		return nil, err

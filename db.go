@@ -3,6 +3,7 @@ package mysqldriver
 import (
 	"errors"
 	"strings"
+	"time"
 )
 
 var ErrClosedDB = errors.New("mysqldriver: can't get connection from the closed DB")
@@ -17,6 +18,7 @@ type DB struct {
 	protocol string
 	address  string
 	database string
+	readTimeout time.Duration
 }
 
 // NewDB initializes pool of connections but doesn't
@@ -25,7 +27,7 @@ type DB struct {
 // Pool size is fixed and can't be resized later.
 // DataSource parameter has the following format:
 // [username[:password]@][protocol[(address)]]/dbname
-func NewDB(dataSource string, pool int) *DB {
+func NewDB(dataSource string, pool int, readTimeout time.Duration) *DB {
 	usr, pass, proto, addr, dbname := parseDataSource(dataSource)
 	conns := make(chan *Conn, pool)
 	return &DB{
@@ -106,7 +108,7 @@ func (db *DB) Close() []error {
 }
 
 func (db *DB) dial() (*Conn, error) {
-	conn, err := NewConn(db.username, db.password, db.protocol, db.address, db.database)
+	conn, err := NewConn(db.username, db.password, db.protocol, db.address, db.database, db.readTimeout)
 	if err != nil {
 		return conn, err
 	}

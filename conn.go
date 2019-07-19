@@ -3,6 +3,7 @@ package mysqldriver
 import (
 	"context"
 	"net"
+	"time"
 
 	"github.com/pubnative/mysqlproto-go"
 )
@@ -31,8 +32,8 @@ type Stats struct {
 
 // NewConn establishes a connection to the DB. After obtaining the connection,
 // it sends "SET NAMES utf8" command to the DB
-func NewConn(username, password, protocol, address, database string) (*Conn, error) {
-	return NewConnContext(context.Background(), username, password, protocol, address, database)
+func NewConn(username, password, protocol, address, database string, readTimeout time.Duration) (*Conn, error) {
+	return NewConnContext(context.Background(), username, password, protocol, address, database, readTimeout)
 }
 
 // NewConnContext establishes a connection to the DB. After obtaining the connection,
@@ -40,7 +41,7 @@ func NewConn(username, password, protocol, address, database string) (*Conn, err
 //
 // Go Context is only used to establish a TCP connection.
 // TODO use Go Context to establish a MySQL connection.
-func NewConnContext(ctx context.Context, username, password, protocol, address, database string) (*Conn, error) {
+func NewConnContext(ctx context.Context, username, password, protocol, address, database string, readTimeout time.Duration) (*Conn, error) {
 	conn, err := (&net.Dialer{}).DialContext(ctx, protocol, address)
 	if err != nil {
 		return nil, err
@@ -48,7 +49,7 @@ func NewConnContext(ctx context.Context, username, password, protocol, address, 
 
 	stream, err := mysqlproto.ConnectPlainHandshake(
 		conn, capabilityFlags,
-		username, password, database, nil,
+		username, password, database, nil, readTimeout,
 	)
 
 	if err != nil {
