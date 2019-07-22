@@ -41,7 +41,9 @@ func NewConn(username, password, protocol, address, database string, readTimeout
 //
 // Go Context is only used to establish a TCP connection.
 // TODO use Go Context to establish a MySQL connection.
-func NewConnContext(ctx context.Context, username, password, protocol, address, database string, readTimeout time.Duration) (*Conn, error) {
+func NewConnContext(ctx context.Context, username, password, protocol, address,
+	database string, readTimeout time.Duration) (*Conn, error) {
+
 	conn, err := (&net.Dialer{}).DialContext(ctx, protocol, address)
 	if err != nil {
 		return nil, err
