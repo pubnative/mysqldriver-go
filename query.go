@@ -376,9 +376,6 @@ func (c *Conn) Query(sql string) (*Rows, error) {
 		if _, ok := err.(mysqlproto.ERRPacket); !ok {
 			c.valid = false
 		}
-		if err, ok := err.(net.Error); ok && err.Timeout() {
-			c.valid = false
-		}
 		return nil, err
 	}
 
