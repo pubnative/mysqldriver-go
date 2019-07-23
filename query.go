@@ -1,6 +1,7 @@
 package mysqldriver
 
 import (
+	"net"
 	"strconv"
 
 	"github.com/pubnative/mysqlproto-go"

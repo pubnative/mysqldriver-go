@@ -3,19 +3,20 @@ package mysqldriver
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/pubnative/mysqlproto-go"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewConnSuccess(t *testing.T) {
-	conn, err := NewConn("root", "", "tcp", "127.0.0.1:3306", "test")
+	conn, err := NewConn("root", "", "tcp", "127.0.0.1:3306", "test", time.Duration(0))
 	assert.Nil(t, err)
 	assert.True(t, conn.valid)
 }
 
 func TestNewConnError(t *testing.T) {
-	conn, err := NewConn("root", "", "tcp", "127.0.0.1:3306", "unknown")
+	conn, err := NewConn("root", "", "tcp", "127.0.0.1:3306", "unknown", time.Duration(0))
 	assert.NotNil(t, err)
 	errPkt, ok := err.(mysqlproto.ERRPacket)
 	assert.True(t, ok)
@@ -26,7 +27,7 @@ func TestNewConnError(t *testing.T) {
 }
 
 func TestNewConnContextSuccess(t *testing.T) {
-	conn, err := NewConnContext(context.Background(), "root", "", "tcp", "127.0.0.1:3306", "test")
+	conn, err := NewConnContext(context.Background(), "root", "", "tcp", "127.0.0.1:3306", "test", time.Duration(0))
 	assert.NoError(t, err)
 	assert.True(t, conn.valid)
 }
@@ -35,12 +36,12 @@ func TestNewConnContextCanceled(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	_, err := NewConnContext(ctx, "root", "", "tcp", "127.0.0.1:3306", "test")
+	_, err := NewConnContext(ctx, "root", "", "tcp", "127.0.0.1:3306", "test", time.Duration(0))
 	assert.EqualError(t, err, "dial tcp 127.0.0.1:3306: operation was canceled")
 }
 
 func TestConnClose(t *testing.T) {
-	conn, err := NewConn("root", "", "tcp", "127.0.0.1:3306", "test")
+	conn, err := NewConn("root", "", "tcp", "127.0.0.1:3306", "test", time.Duration(0))
 	assert.Nil(t, err)
 	assert.Nil(t, conn.Close())
 	assert.True(t, conn.closed)

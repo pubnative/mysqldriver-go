@@ -3,6 +3,7 @@ package mysqldriver
 import (
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/pubnative/mysqlproto-go"
 	"github.com/stretchr/testify/assert"
@@ -301,7 +302,7 @@ func TestQueryRowReader(t *testing.T) {
 }
 
 func TestQueryMarkConnInvalidWhenStreamIsBroken(t *testing.T) {
-	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10, time.Duration(0))
 	conn, err := db.GetConn()
 	assert.Nil(t, err)
 
@@ -424,7 +425,7 @@ func TestExecUpdateNotFound(t *testing.T) {
 }
 
 func TestExecMarkConnInvalidWhenStreamIsBroken(t *testing.T) {
-	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10, time.Duration(0))
 	conn, err := db.GetConn()
 	assert.Nil(t, err)
 
@@ -435,7 +436,7 @@ func TestExecMarkConnInvalidWhenStreamIsBroken(t *testing.T) {
 }
 
 func setup(t *testing.T, fn func(conn *Conn)) {
-	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10, time.Duration(0))
 	conn, err := db.GetConn()
 	assert.Nil(t, err)
 
@@ -473,7 +474,7 @@ func setup(t *testing.T, fn func(conn *Conn)) {
 }
 
 func ExampleConn_Query_default() {
-	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10, time.Duration(0))
 	conn, err := db.GetConn()
 	if err != nil {
 		// handle error
@@ -504,7 +505,7 @@ func ExampleConn_Query_default() {
 }
 
 func ExampleConn_Query_null() {
-	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10)
+	db := NewDB("root@tcp(127.0.0.1:3306)/test", 10, time.Duration(0))
 	conn, err := db.GetConn()
 	if err != nil {
 		// handle error
