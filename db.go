@@ -37,6 +37,7 @@ func NewDB(dataSource string, pool int, readTimeout time.Duration) *DB {
 		protocol: proto,
 		address:  addr,
 		database: dbname,
+		readTimeout: readTimeout,
 	}
 }
 
