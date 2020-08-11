@@ -139,12 +139,12 @@ func (r *Rows) Int() int {
 // NullInt method uses strconv.Atoi to convert string into int.
 // (see https://golang.org/pkg/strconv/#Atoi)
 func (r *Rows) NullInt() (int, bool) {
-	str, null := r.NullString()
+	str, null := r.NullBytes()
 	if null {
 		return 0, true
 	}
 
-	num, err := strconv.Atoi(str)
+	num, err := atoi(str)
 	if err != nil {
 		r.errParse = err
 	}
@@ -328,12 +328,12 @@ func (r *Rows) Bool() bool {
 // NullBool method uses strconv.ParseBool to convert string into bool.
 // (see https://golang.org/pkg/strconv/#ParseBool)
 func (r *Rows) NullBool() (bool, bool) {
-	str, null := r.NullString()
+	str, null := r.NullBytes()
 	if null {
 		return false, true
 	}
 
-	b, err := strconv.ParseBool(str)
+	b, err := parseBool(str)
 	if err != nil {
 		r.errParse = err
 	}
