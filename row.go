@@ -92,12 +92,12 @@ func (r Row) String(col string) string {
 // NullInt method uses strconv.Atoi to convert string into int.
 // (see https://golang.org/pkg/strconv/#Atoi)
 func (r Row) NullInt(col string) (int, bool) {
-	value, null := r.NullString(col)
+	value, null := r.NullBytes(col)
 	if null {
 		return 0, true
 	}
 
-	num, err := strconv.Atoi(value)
+	num, err := atoi(value)
 	if err != nil {
 		r.rows.errParse = err
 	}
@@ -281,12 +281,12 @@ func (r Row) Float64(col string) float64 {
 // NullBool method uses strconv.ParseBool to convert string into bool.
 // (see https://golang.org/pkg/strconv/#ParseBool)
 func (r Row) NullBool(col string) (bool, bool) {
-	str, null := r.NullString(col)
+	str, null := r.NullBytes(col)
 	if null {
 		return false, true
 	}
 
-	b, err := strconv.ParseBool(str)
+	b, err := parseBool(str)
 	if err != nil {
 		r.rows.errParse = err
 	}
