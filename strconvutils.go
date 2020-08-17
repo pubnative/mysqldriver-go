@@ -74,7 +74,7 @@ func atoi(s []byte) (int, error) {
 }
 
 func parseBool(str []byte) (bool, error) {
-	switch string(str) { // TODO check that this is actually optimised away
+	switch string(str) {
 	case "1", "t", "T", "true", "TRUE", "True":
 		return true, nil
 	case "0", "f", "F", "false", "FALSE", "False":
